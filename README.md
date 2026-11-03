@@ -36,10 +36,11 @@ Enlighten is a powerful, self-contained tool that automatically installs any Git
 npm install -g enlighten-agent-tool
 ```
 
-Or download directly:
+After installation completes, the skills are automatically configured:
 
 ```bash
-curl -fsSL https://enlighten.ai/install.sh | sh
+# Skills are installed to your detected agent framework
+# (Hermes, Claude Code, Opencode, etc.)
 ```
 
 ## Quick Start
@@ -53,6 +54,10 @@ enlighten install https://github.com/user/repo --dry-run
 
 # Specify your harness
 enlighten install https://github.com/user/repo --harness hermes
+
+# Use within agent frameworks
+/enlighten install https://github.com/user/repo
+/enlighten diagnose https://github.com/affaan-m/ECC
 ```
 
 ## Commands
@@ -81,7 +86,7 @@ $ enlighten diagnose https://github.com/vercel/next.js
 ### Language & Framework Detection Matrix
 
 | Package File | Language | Framework | Profile |
-|-------------|----------|-----------|---------|
+|--------------|----------|-----------|---------|
 | `package.json` | TypeScript | Next.js, React, Vue, Svelte | web-developer |
 | `requirements.txt` | Python | Django, FastAPI | python-backend |
 | `go.mod` | Go | Gin, Echo | go-developer |
@@ -132,15 +137,16 @@ npm link
 ```
 enlighten-agent-tool/
 ├── bin/
-│   └── enlighten            # CLI executable
+│   └── enlighten          # CLI executable
 ├── skills/
-│   ├── enlighten/           # Main command skill
+│   ├── enlighten/         # Main command skill
 │   ├── enlighten-installer/ # Scanner and analyzer
 │   └── enlighten-uninstaller/ # Clean removal
 ├── scripts/
-│   └── install.js            # NPM install script
+│   ├── postinstall.js     # NPM postinstall script
+│   └── install.js         # Installation script
 ├── tests/
-│   └── test-scanner.js       # Verification tests
+│   └── test-scanner.js    # Verification tests
 └── README.md
 ```
 
@@ -168,15 +174,50 @@ console.log(info.language, info.framework);
 - **Rollback capability** - Revert installations if needed
 - **Integrity checks** - Verify successful installations
 
+## Troubleshooting
+
+### Command Not Found
+
+If `/enlighten` or `enlighten` command is not recognized:
+
+1. Ensure npm packages are in your PATH:
+   ```bash
+   export PATH="$HOME/.npm-global/bin:$PATH"
+   ```
+
+2. For agent frameworks, manually copy skills:
+   ```bash
+   # For Hermes
+   cp -r skills/* ~/.hermes/skills/
+   
+   # For Claude Code
+   cp -r skills/* ~/.claude/skills/
+   ```
+
+### Permission Errors
+
+If you get EACCES errors during installation:
+
+```bash
+# Option 1: Use nvm (recommended)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# Option 2: Configure npm to use home directory
+npm config set prefix '~/.npm-global'
+```
+
+### Framework Detection Issues
+
+Enlighten auto-detects your agent framework. To override:
+
+```bash
+enlighten install <url> --harness hermes
+enlighten install <url> --harness claude
+```
+
 ## Contributing
 
 Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a pull request
 
 ## License
 

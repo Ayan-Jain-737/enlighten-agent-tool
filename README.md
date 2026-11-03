@@ -1,213 +1,134 @@
-# enlighten-agent-tool
+# Enlight Agent Tool
 
-## What This Tool Does
+[![npm](https://img.shields.io/npm/v/@enlighten/agent-tool.svg)](https://www.npmjs.com/package/@enlighten/agent-tool)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-lightgreen.svg)](https://nodejs.org/)
 
-**Enlighten** is a universal GitHub repository installer for AI agent harnesses. Install any repo with:
+**Enlight Agent Tool** is a command-line utility that installs any GitHub repository into your local agent harness environment. It automates the detection, adaptation, and setup process across multiple development platforms.
+
+## Installation
 
 ```bash
-/enlighten install https://github.com/user/repo
+npm install -g @enlighten/agent-tool
 ```
 
-Works with: **Hermes, Claude Code, Opencode, Codex, and more**.
-
-## Usage
+## Quick Start
 
 ```bash
-# Install a repository
-/enlighten install https://github.com/user/repo
-
-# Dry-run (preview changes)
-/enlighten install https://github.com/user/repo --dry-run
-
-# Install with specific options
-/enlight install https://github.com/user/repo --harness hermes --profile cse-core
-
-# List what's installed
-/enlighten list-installed
-
-# Uninstall
-/enlighten uninstall repo-identifier
-
-# Diagnose before installing
-/enlighten diagnose https://github.com/user/repo
+enlighten install https://github.com/user/repo
 ```
 
 ## Features
 
-✅ **Self-contained** - Works without ECC dependency  
-✅ **Harness-agnostic** - Runs in Hermes, Claude, Opencode, Codex  
-✅ **Auto-detect** - Finds language, framework, requirements  
-✅ **Profile mapping** - Chooses optimal configuration  
-✅ **OS adaptation** - Rewrites install scripts for your system  
-✅ **Full uninstall** - Removes everything cleanly  
-✅ **Safety checks** - Dry-run, confirmation prompts, rollback  
+### Multi-Platform Support
 
-## Architecture
+| Harness | Status |
+|---------|--------|
+| Claude Code | ✅ Supported |
+| Hermes | ✅ Supported |
+| Opencode | ✅ Supported |
+| Codex | ✅ Supported |
+
+### Language Detection
+
+Automatically identifies your project type and configures appropriately:
 
 ```
-enlighten-agent-tool/
-├── bin/
-│   └── enlighten           # Main CLI binary
-├── skills/
-│   ├── enlighten/          # Main /enlighten command skill
-│   │   └── scripts/dispatch.js
-│   ├── enlighten-installer/ # Scanner and analyzer
-│   │   └── scripts/scan-repo.js
-│   └── enlighten-uninstaller/ # Clean removal
-│       └── scripts/
-├── scripts/
-│   └── install.js          # Installation script
-├── tests/
-│   └── test-scanner.js     # Verification tests
-├── package.json
-└── README.md
+Repository Type    →    Detected Framework    →    Profile
+─────────────────────────────────────────────────────────────
+JavaScript/TypeScript →  react/next/vue   →  web-developer
+Python                →  django/fastapi    →  python-backend
+Go                    →  gin/echo          →  go-developer
+Rust                  →  actix/rocket      →  rust-developer
 ```
 
-## How It Works
-
-| Step | Component | Action |
-|------|-----------|--------|
-| 1 | Scanner | Clone repo, detect language/framework from marker files |
-| 2 | Mapper | Map to optimal profile (web-developer, python-backend, etc.) |
-| 3 | Adapter | Rewrite commands for your OS and harness |
-| 4 | Executor | Run installation using harness's native tools |
-| 5 | Verifier | Confirm success and register in installation list |
-
-## Language/Framework Detection
-
-| Marker File | Detected As | Profile |
-|-------------|-------------|---------|
-| package.json | TypeScript/JS | web-developer |
-| requirements.txt | Python | python-backend |
-| go.mod | Go | go-developer |
-| Cargo.toml | Rust | rust-developer |
-| build.gradle | Java | java-enterprise |
-| *.sln/*.csproj | C# | dotnet-developer |
-| CMakeLists.txt | C++ | cpp-developer |
-
-## Installation
-
-### Global (recommended)
-```bash
-npm install -g @enlighten/agent-tool
-# or
-curl -fsSL https://enlighten.ai/install.sh | sh
-```
-
-### Local
-```bash
-npm install --save-dev @enlighten/agent-tool
-```
-
-### Manual
-```bash
-git clone https://github.com/Ayan-Jain-737/enlighten-agent-tool
-cd enlighten-agent-tool
-node scripts/install.js
-```
-
-## CLI Commands
+### Usage Commands
 
 ```bash
-enlighten install <url>         Install a repo
-enlighten uninstall <id>        Remove installation
-enlighten list-installed        Show all installs
-enlighten diagnose <url>        Analyze repo without installing
-enlighten version               Show version
-```
+# Install a repository
+enlighten install https://github.com/user/repo
 
-## Examples
+# Preview installation (dry-run)
+enlighten install https://github.com/user/repo --dry-run
 
-### Install ECC
-```
-$ enlighten install https://github.com/affaan-m/ECC
+# Install with specific configuration
+enlighten install https://github.com/user/repo \
+  --harness hermes \
+  --profile developer
 
-🔧 Enlighten Installer v2.0.0
+# List installed repositories
+enlighten list-installed
 
-Step 1/5: Scanning repository...
-  Language: typescript
-  Framework: next
-  Profile: web-developer
+# Remove an installation
+enlighten uninstall repository-id
 
-Step 2/5: Adapting for your system...
-  OS: linux
-  Harness: hermes
-
-Step 3/5: Preparing installation...
-Step 4/5: Executing installation...
-✓ Installed 71 agents, 314 skills, 98 commands
-✓ Profile 'web-developer' activated
-
-Step 5/5: Verifying...
-✅ Installation verified!
-```
-
-### Dry-run Installation
-```
-$ enlighten install https://github.com/user/repo --dry-run
-
-⚠️  DRY RUN MODE
-
-Would install:
-• profile: cse-core
-• 12 skills
-• 5 agents
-• CLI commands
-
-No changes made.
-```
-
-## Uninstall
-
-```
-$ enlighten list-installed
-Installed: ec-tools-user-repo
-
-$ enlighten uninstall ec-tools-user-repo
-
-🗑️  Enlighten Uninstaller
-
-Removing: ec-tools-user-repo
-Files to remove: 12 items
-Proceed? (y/N) y
-
-✅ Successfully uninstalled
-```
-
-## Environment
-
-```bash
-ENLIGHTEN_CACHE_DIR=~/.enlighten/cache    # Cache location
-ENLIGHTEN_LOG_LEVEL=info                    # Debug/info/warn/error
-ENLIGHTEN_TIMEOUT=300                       # Command timeout (seconds)
+# Diagnose a repository
+enlighten diagnose https://github.com/user/repo
 ```
 
 ## Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/Ayan-Jain-737/enlighten-agent-tool
+cd enlighten-agent-tool
+
+# Install dependencies
+npm install
+
 # Run tests
 npm test
 
 # Link globally for development
-npm run link
-
-# Test CLI
-node bin/enlighten diagnose https://github.com/affaan-m/ECC
+npm link
 ```
 
-## Status
+## API
 
-✅ **Complete** - Ready for use
+The tool exposes a programmatic API for integration:
 
-| Component | Status |
-|-----------|--------|
-| Scanner | ✅ Working |
-| Mapper | ✅ Complete |
-| Adapter | ✅ Built |
-| CLI | ✅ Complete |
-| Uninstaller | ✅ Built |
-| Tests | ✅ Included |
+```javascript
+const { install, uninstall, diagnose } = require('@enlight/agent-tool');
+
+// Install a repository programmatically
+await install({
+  url: 'https://github.com/user/repo',
+  harness: 'hermes',
+  profile: 'developer',
+  dryRun: false
+});
+
+// Get diagnostics without installing
+const info = await diagnose('https://github.com/user/repo');
+console.log(info.language, info.framework, info.profile);
+```
+
+## Configuration
+
+Environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENLIGHTEN_CACHE_DIR` | `~/.enlighten/cache` | Cache directory |
+| `ENLIGHTEN_LOG_LEVEL` | `info` | Log level (debug, info, warn, error) |
+| `ENLIGHTEN_TIMEOUT` | `300` | Operation timeout in seconds |
+
+## Requirements
+
+- Node.js 18.0.0 or higher
+- Git 2.0.0 or higher
+- Write permissions to configuration directory
 
 ## License
 
-MIT License - Free for commercial and personal use.
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Contributing
+
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting pull requests.
+
+## Support
+
+- [Documentation](https://enlighten.ai/docs)
+- [Issue Tracker](https://github.com/Ayan-Jain-737/enlighten-agent-tool/issues)
+- [Discussions](https://github.com/Ayan-Jain-737/enlighten-agent-tool/discussions)

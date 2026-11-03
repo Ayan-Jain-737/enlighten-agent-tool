@@ -1,129 +1,71 @@
 # enlighten-agent-tool
 
-A universal repository installer that uses ECC to automatically detect, adapt, and install any GitHub project across different harnesses.
+## What This Tool Does
 
-## Project Overview
-
-This project builds on ECC (Everything Claude Code) to create a universal installer that scans, adapts, and installs GitHub repositories based on the user's harness (Hermes, Claude Code, Codex, etc.).
-
-## What's Done ✓
-
-### ECC for Hermes Setup Complete
-- ✅ Installed all 71 ECC agents in `~/.hermes/agents/`
-- ✅ Installed 355+ skills in `~/.hermes/skills/`
-- ✅ Installed 98 commands in `~/.hermes/commands/`
-- ✅ Installed rule sets for: TypeScript, Python, Go, Rust, Java, C++
-- ✅ Created 5 profiles: `cse-core`, `full-cse`, `researcher`, `devops`, `ml-researcher`
-- ✅ Configured basic hooks for command/file validation
-- ✅ Created `profile-selector` skill to switch profiles
-- ✅ Created `repo-orchestrator` skill for repository installation
-- ✅ Created `repo-adapter` skill for scanning repos
-- ✅ Implemented `scan-repo.js` script for language/framework detection
-
-### Skills Created (in ~/.hermes/skills/)
-
-| Skill | Purpose | Status |
-|-------|---------|--------|
-| `repo-adapter` | Scan GitHub repos for language/dependencies | ✅ Complete |
-| `repo-orchestrator` | Orchestrate repo installation workflow | ✅ Complete |
-| `profile-selector` | Switch between ECC profiles | ✅ Complete |
-| `find-right` | Map prompts to correct profile/skill | ⏳ In progress |
-| `adapt-install` | Adapt installs for local harness | ⏳ Planned |
-
-### Project Structure
-```
-enlighten-agent-tool/
-├── README.md                 # ✅ This file
-├── SETUP_SUMMARY.md          # ✅ ECC installation guide
-├── skills/                   # ✅ Active development
-│   ├── repo-adapter/         # ✅ Scan repos for language/dependencies
-│   ├── repo-orchestrator/    # ✅ Orchestrate repo installation
-│   ├── profile-selector/     # ✅ Switch between ECC profiles
-│   ├── find-right/           # ⏳ Map prompts to profiles
-│   └── adapt-install/        # ⏳ Adapt for local harness (planned)
-├── agents/                   # ⏳ In progress
-│   └── installer-operator.md # ⏳ Orchestrate installation
-├── scripts/                   # ✅ Active development
-│   ├── scan-repo.js          # ✅ Repo language/dependency scanner
-│   ├── map-harness.js        # ⏳ Plan: profile mapper
-│   └── apply-patch.js        # ⏳ Plan: OS-specific script rewriter
-├── commands/                  # ⏳ Planned
-│   └── /enlighten-setup.md   # Plan: main entry point
-│   └── /enlighten-inspect.md # Plan: dry-run mode
-├── templates/                 # ⏳ Planned
-│   └── install-profile.json  # Plan: profile template
-└── tests/                     # ⏳ Planned
-    └── test-scan.js          # Plan: unit tests
-```
+A universal installer that takes any GitHub repo URL and installs it into your current agent harness (Claude Code, Hermes, Opencode, Codex, etc.) automatically.
 
 ## Usage
 
-### Scan a repository
-```bash
-/skill-use repo-adapter
+```
+/enlighten https://github.com/user/repo
+/enlighten https://github.com/user/repo --dry-run
+/enlighten https://github.com/user/repo --harness hermes --profile cse-core
 ```
 
-### Orchestrate repo installation
-```bash
-/skill-use repo-orchestrator
-/repo-orchestrator https://github.com/user/repo --harness hermes --profile cse-core
-```
+## What's Already Built
 
-### Dry-run inspection
-```bash
-/repo-orchestrator https://github.com/user/repo --dry-run
-```
+✅ **repo-adapter skill** (`~/.hermes/skills/repo-adapter/`)
+- Scans GitHub repos for language, framework, dependencies
+- Detects: TypeScript, Python, Go, Rust, Java, React, Vue, Django, FastAPI, etc.
+- Output: JSON with install requirements
 
-### Find right profile for a task
-```bash
-/skill-use find-right "I need to add JWT auth to my Express API"
-# Returns: cse-core profile + auth-related skills
-```
+✅ **repo-orchestrator skill** (`~/.hermes/skills/repo-orchestrator/`) 
+- Implements the full workflow: scan → adapt → install → verify
+- Uses ECC's orch-* pipeline pattern
+- Handles profile mapping
 
-## Profile Mapping Reference
+✅ **scan-repo.js** - Working scanner script
+- Clones repos, detects language from marker files
+- Maps to appropriate ECC profile
 
-| Repo Type | ECC Profile | Key Skills |
-|-----------|-------------|------------|
-| Web app (React/Vue/Svelte) | cse-core | typescript-reviewer, frontend-patterns |
-| Python API (FastAPI/Django) | cse-core | python-reviewer, fastapi-reviewer |
-| Go service | cse-core | go-reviewer, golang-patterns |
-| Rust project | cse-core | rust-reviewer, rust-patterns |
-| Java/Spring | cse-core | java-reviewer, springboot-patterns |
-| ML project | ml-researcher | pytorch-patterns, mle-reviewer |
-| Research paper | researcher | deep-research, arxiv |
-| Infrastructure | devops | terraform-patterns, kubernetes-patterns |
+## What's Missing
 
-## Architecture
+1. **repo-adapter scripts**: 
+   - `adapt-install.js` - Rewrites install scripts for local OS
+   - `map-harness.js` - Determines user's harness
+   - `apply-patch.js` - OS-specific adaptations
 
-```
-User → /enlighten-setup → repo-adapter skill
-                         ↓
-              scan-repo.js detects language/frameworks
-                         ↓
-              find-right maps to ECC profile
-                         ↓
-              adapt-install rewrites scripts
-                         ↓
-              installer-operator executes
-                         ↓
-              ECC agents/skills handle the install
-```
+2. **Commands**:
+   - `/enlighten` - Main entry point command
+   - `/enlighten-inspect` - Dry-run inspection
 
-## API Keys Needed
+3. **installer-operator agent** - Agent that orchestrates the workflow
 
-Add to `~/.hermes/.env`:
-```
-OPENROUTER_API_KEY=  # For docs-lookup, search skills
-EXA_API_KEY=         # For deep-research
-GITHUB_TOKEN=        # For repo cloning
-```
+4. **find-right skill** - Maps prompts to profiles
 
-## Related Projects
+## Profile Mapping
 
-- **ECC Repository**: https://github.com/affaan-m/ECC
-- **ECC Documentation**: https://ecc.tools
-- **Hermes Agent**: https://hermes-agent.nousresearch.com
+| Repo Type | ECC Profile | Detected By |
+|-----------|-------------|-------------|
+| Web app (React/Vue/Svelte) | cse-core | package.json |
+| Python API (FastAPI/Django) | cse-core | requirements.txt |
+| Go service | cse-core | go.mod |
+| Rust project | cse-core | Cargo.toml |
+| Java/Spring | cse-core | build.gradle/pom.xml |
+| ML project | ml-researcher | pyproject.toml |
+| Research paper | researcher | README keywords |
+| Infrastructure | devops | terraform/k8s files |
 
-## License
+## Local Skills Location
 
-MIT License - Same as ECC
+All skills are installed in:
+- `~/.hermes/skills/repo-adapter/`
+- `~/.hermes/skills/repo-orchestrator/`
+- `~/.hermes/skills/profile-selector/`
+
+## Next Steps
+
+1. Copy repo-adapter and repo-orchestrator to project directory
+2. Implement `adapt-install.js` and `apply-patch.js`
+3. Create `/enlighten` command
+4. Test with real repos

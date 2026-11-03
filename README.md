@@ -9,48 +9,69 @@ This project builds on ECC (Everything Claude Code) to create a universal instal
 ## What's Done ✓
 
 ### ECC for Hermes Setup Complete
-- Installed all 71 ECC agents in `~/.hermes/agents/`
-- Installed 355 skills in `~/.hermes/skills/`
-- Installed 98 commands in `~/.hermes/commands/`
-- Installed rule sets for: TypeScript, Python, Go, Rust, Java, C++
-- Created 5 profiles: `cse-core`, `full-cse`, `researcher`, `devops`, `ml-researcher`
-- Configured basic hooks for command/file validation
-- Created `profile-selector` skill to switch profiles
+- ✅ Installed all 71 ECC agents in `~/.hermes/agents/`
+- ✅ Installed 355+ skills in `~/.hermes/skills/`
+- ✅ Installed 98 commands in `~/.hermes/commands/`
+- ✅ Installed rule sets for: TypeScript, Python, Go, Rust, Java, C++
+- ✅ Created 5 profiles: `cse-core`, `full-cse`, `researcher`, `devops`, `ml-researcher`
+- ✅ Configured basic hooks for command/file validation
+- ✅ Created `profile-selector` skill to switch profiles
+- ✅ Created `repo-orchestrator` skill for repository installation
+- ✅ Created `repo-adapter` skill for scanning repos
+- ✅ Implemented `scan-repo.js` script for language/framework detection
 
-### Project Structure Created
+### Skills Created (in ~/.hermes/skills/)
+
+| Skill | Purpose | Status |
+|-------|---------|--------|
+| `repo-adapter` | Scan GitHub repos for language/dependencies | ✅ Complete |
+| `repo-orchestrator` | Orchestrate repo installation workflow | ✅ Complete |
+| `profile-selector` | Switch between ECC profiles | ✅ Complete |
+| `find-right` | Map prompts to correct profile/skill | ⏳ In progress |
+| `adapt-install` | Adapt installs for local harness | ⏳ Planned |
+
+### Project Structure
 ```
 enlighten-agent-tool/
-├── README.md                 # ✓ This file
-├── SETUP_SUMMARY.md          # ✓ ECC installation guide
-├── skills/                   # ⏳ TODO
-│   └── repo-adapter/         # TODO - scan repos for language/dependencies
-│   └── adapt-install/        # TODO - adapt for local harness
-│   └── find-right/           # TODO - map prompts to profiles
-├── agents/                   # ⏳ TODO
-│   └── installer-operator.md # TODO - orchestrate installation
-├── scripts/                   # ⏳ TODO
-│   ├── scan-repo.js          # TODO - repo language/dependency scanner
-│   ├── map-harness.js        # TODO - profile mapper
-│   └── apply-patch.js        # TODO - OS-specific script rewriter
-├── commands/                  # ⏳ TODO
-│   └── /enlighten-setup.md   # TODO - main entry point
-│   └── /enlighten-inspect.md # TODO - dry-run mode
-├── templates/                 # ⏳ TODO
-│   └── install-profile.json  # TODO
-└── tests/                     # ⏳ TODO
-    └── test-scan.js          # TODO
+├── README.md                 # ✅ This file
+├── SETUP_SUMMARY.md          # ✅ ECC installation guide
+├── skills/                   # ✅ Active development
+│   ├── repo-adapter/         # ✅ Scan repos for language/dependencies
+│   ├── repo-orchestrator/    # ✅ Orchestrate repo installation
+│   ├── profile-selector/     # ✅ Switch between ECC profiles
+│   ├── find-right/           # ⏳ Map prompts to profiles
+│   └── adapt-install/        # ⏳ Adapt for local harness (planned)
+├── agents/                   # ⏳ In progress
+│   └── installer-operator.md # ⏳ Orchestrate installation
+├── scripts/                   # ✅ Active development
+│   ├── scan-repo.js          # ✅ Repo language/dependency scanner
+│   ├── map-harness.js        # ⏳ Plan: profile mapper
+│   └── apply-patch.js        # ⏳ Plan: OS-specific script rewriter
+├── commands/                  # ⏳ Planned
+│   └── /enlighten-setup.md   # Plan: main entry point
+│   └── /enlighten-inspect.md # Plan: dry-run mode
+├── templates/                 # ⏳ Planned
+│   └── install-profile.json  # Plan: profile template
+└── tests/                     # ⏳ Planned
+    └── test-scan.js          # Plan: unit tests
 ```
 
-## Usage (When Complete)
+## Usage
 
-### Install a repo
+### Scan a repository
 ```bash
-/enlighten-setup https://github.com/user/repo
+/skill-use repo-adapter
+```
+
+### Orchestrate repo installation
+```bash
+/skill-use repo-orchestrator
+/repo-orchestrator https://github.com/user/repo --harness hermes --profile cse-core
 ```
 
 ### Dry-run inspection
 ```bash
-/enlighten-inspect https://github.com/user/repo
+/repo-orchestrator https://github.com/user/repo --dry-run
 ```
 
 ### Find right profile for a task
@@ -59,7 +80,7 @@ enlighten-agent-tool/
 # Returns: cse-core profile + auth-related skills
 ```
 
-### Profile Mapping Reference
+## Profile Mapping Reference
 
 | Repo Type | ECC Profile | Key Skills |
 |-----------|-------------|------------|
@@ -72,37 +93,7 @@ enlighten-agent-tool/
 | Research paper | researcher | deep-research, arxiv |
 | Infrastructure | devops | terraform-patterns, kubernetes-patterns |
 
-## Remaining Tasks
-
-### Phase 1: Core Infrastructure (Priority)
-1. [ ] Create `skills/repo-adapter/SKILL.md` - Repo scanning skill
-2. [ ] Create `skills/adapt-install/SKILL.md` - Install adaptation skill
-3. [ ] Create `skills/find-right/SKILL.md` - Profile/skill mapping skill
-4. [ ] Create `agents/installer-operator.md` - Orchestration agent
-5. [ ] Implement `scripts/scan-repo.js` - Language detection script
-
-### Phase 2: Harness Support
-6. [ ] Implement `scripts/map-harness.js` - Map to correct harness
-7. [ ] Implement `scripts/apply-patch.js` - OS/script adaptation
-8. [ ] Create `commands/enlighten-setup.md` - Main command
-9. [ ] Create `commands/enlighten-inspect.md` - Dry-run command
-
-### Phase 3: Testing & Expansion
-10. [ ] Create test suite for scanner
-11. [ ] Add more profile templates
-12. [ ] Support Windows/macOS/Linux adaptation
-13. [ ] Add CI/CD integration tests
-
-## API Keys Needed
-
-Add to `~/.hermes/.env`:
-```
-OPENROUTER_API_KEY=  # For docs-lookup
-EXA_API_KEY=         # For deep-research
-GITHUB_TOKEN=        # For repo cloning
-```
-
-## Technical Architecture
+## Architecture
 
 ```
 User → /enlighten-setup → repo-adapter skill
@@ -116,6 +107,15 @@ User → /enlighten-setup → repo-adapter skill
               installer-operator executes
                          ↓
               ECC agents/skills handle the install
+```
+
+## API Keys Needed
+
+Add to `~/.hermes/.env`:
+```
+OPENROUTER_API_KEY=  # For docs-lookup, search skills
+EXA_API_KEY=         # For deep-research
+GITHUB_TOKEN=        # For repo cloning
 ```
 
 ## Related Projects

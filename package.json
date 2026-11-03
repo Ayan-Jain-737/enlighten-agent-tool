@@ -15,7 +15,7 @@
   "author": "Ayan-Jain-737",
   "license": "MIT",
   "bin": {
-    "enlighten": "./bin/enlighten"
+    "enlighten": "bin/enlighten"
   },
   "files": [
     "bin/",

@@ -1,6 +1,6 @@
 {
   "name": "enlighten-agent-tool",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Universal GitHub repository installer for AI agent harnesses",
   "keywords": [
     "github",

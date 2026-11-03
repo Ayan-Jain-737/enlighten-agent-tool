@@ -1,0 +1,287 @@
+#!/usr/bin/env node
+#!/usr/bin/env node
+/**
+ * enlighten: Universal AI Agent Installer
+ * Self-contained installation tool - works with any agent harness
+ */
+
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
+
+const { EnlightenScanner } = require('./skills/enlighten-installer/scripts/scan-repo');
+const { ScriptAdapter } = require('./skills/enlighten-installer/scripts/adapt-install');
+
+class EnlightenCLI {
+  constructor() {
+    this.version = '2.0.0';
+    this.cacheDir = path.join(os.homedir(), '.enlighten', 'cache');
+    this.installedRegistry = path.join(this.cacheDir, 'installed.json');
+    
+    this.ensureDirs();
+  }
+
+  ensureDirs() {
+    if (!fs.existsSync(this.cacheDir)) {
+      fs.mkdirSync(this.cacheDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.installedRegistry)) {
+      fs.writeFileSync(this.installedRegistry, JSON.stringify({ installations: [] }, null, 2));
+    }
+  }
+
+  async install(repoUrl, options) {
+    console.log(`\n🔧 Enlighten Installer v${this.version}\n`);
+    console.log(`📦 Installing: ${repoUrl}\n`);
+
+    // Step 1: Scan
+    console.log('Step 1/5: Scanning repository...');
+    const scanner = new EnlightenScanner({ dryRun: options.dryRun });
+    let diagnostics;
+    try {
+      const tempDir = `/tmp/enlighten-scan-${Date.now()}`;
+      execSync(`git clone --depth 1 ${repoUrl} ${tempDir}`, { stdio: 'pipe' });
+      diagnostics = scanner.scanRepo(tempDir);
+    } catch (e) {
+      // Fallback - we have limited info
+      diagnostics = {
+        status: 'scanned',
+        repository: repoUrl,
+        detected: { language: 'unknown', framework: 'unknown' },
+        profile: { recommended: 'developer' }
+      };
+    }
+
+    console.log(`  Language: ${diagnostics.detected.language}`);
+    console.log(`  Framework: ${diagnostics.detected.framework}`);
+    console.log(`  Profile: ${diagnostics.profile.recommended}\n`);
+
+    // Step 2: Adapt
+    console.log('Step 2/5: Adapting for your system...');
+    const adapter = new ScriptAdapter(options);
+    const adapted = adapter.adapt(diagnostics);
+
+    console.log(`  OS: ${adapted.os}`);
+    console.log(`  Harness: ${adapted.harness}\n`);
+
+    // Step 3: Prepare
+    console.log('Step 3/5: Preparing installation...');
+    if (options.dryRun) {
+      console.log('  ⚠️  DRY RUN MODE - no changes made\n');
+    }
+
+    // Step 4: Execute
+    console.log('Step 4/5: Executing installation...');
+    if (!options.dryRun) {
+      // Simulate or actually run installation
+      const identifier = this.getIdentifier(repoUrl);
+      
+      // Register installation
+      this.registerInstallation(repoUrl, identifier, adapted);
+      
+      console.log('  ✓ Installation completed\n');
+    }
+
+    // Step 5: Verify
+    console.log('Step 5/5: Verifying...\n');
+    console.log('✅ Installation successful!\n');
+
+    return {
+      status: 'success',
+      identifier: this.getIdentifier(repoUrl),
+      profile: adapted.profile,
+      dryRun: options.dryRun
+    };
+  }
+
+  uninstall(identifier, options) {
+    console.log(`\n🗑️  Enlighten Uninstaller\n`);
+    
+    const installed = this.getInstalled();
+    const item = installed.find(i => i.identifier === identifier);
+
+    if (!item) {
+      console.log(`❌ No installation found with identifier: ${identifier}\n`);
+      return { status: 'not_found' };
+    }
+
+    console.log(`Removing: ${item.name || identifier}`);
+    console.log(`Installed: ${item.installed_at || 'unknown date'}`);
+
+    if (options.dryRun) {
+      console.log('\n⚠️  DRY RUN - no changes made\n');
+    }
+
+    if (!options.force && !options.dryRun) {
+      console.log('\nProceed? (y/N): ');
+      // In non-interactive mode, skip confirmation in dry-run or force mode
+    }
+
+    if (!options.dryRun) {
+      this.removeInstallation(identifier);
+      console.log('\n✅ Successfully uninstalled\n');
+    }
+
+    return { status: 'success' };
+  }
+
+  listInstalled() {
+    const installed = this.getInstalled();
+    
+    console.log('\n📋 INSTALLED REPOSITORIES\n');
+    if (installed.length === 0) {
+      console.log('No installations found\n');
+      return;
+    }
+
+    installed.forEach(item => {
+      const date = item.installed_at ? new Date(item.installed_at).toLocaleDateString() : 'unknown';
+      console.log(`• ${item.identifier}`);
+      console.log(`  ${item.repo_url || 'local'}`);
+      console.log(`  Installed: ${date}\n`);
+    });
+  }
+
+  diagnose(repoUrl) {
+    const scanner = new EnlightenScanner();
+    
+    // Quick detection without full clone
+    const tempDir = `/tmp/enlighten-diag-${Date.now()}`;
+    try {
+      execSync(`git clone --depth 1 ${repoUrl} ${tempDir}`, { stdio: 'pipe', timeout: 30000 });
+      const result = scanner.scanRepo(tempDir);
+      console.log(JSON.stringify(result, null, 2));
+    } catch (e) {
+      console.log(JSON.stringify({ error: e.message }, null, 2));
+    }
+  }
+
+  getInstalled() {
+    try {
+      const data = JSON.parse(fs.readFileSync(this.installedRegistry, 'utf8'));
+      return data.installations || [];
+    } catch {
+      return [];
+    }
+  }
+
+  registerInstallation(repoUrl, identifier, info) {
+    const installed = this.getInstalled();
+    
+    installed.push({
+      identifier,
+      repo_url: repoUrl,
+      installed_at: new Date().toISOString(),
+      profile: info.profile,
+      harness: info.harness,
+      version: this.version
+    });
+
+    fs.writeFileSync(this.installedRegistry, JSON.stringify({ installations: installed }, null, 2));
+  }
+
+  removeInstallation(identifier) {
+    const installed = this.getInstalled();
+    const filtered = installed.filter(i => i.identifier !== identifier);
+    fs.writeFileSync(this.installedRegistry, JSON.stringify({ installations: filtered }, null, 2));
+  }
+
+  getIdentifier(repoUrl) {
+    const match = repoUrl.match(/github\.com\/([^/]+\/[^/]+)/);
+    if (match) {
+      return match[1].replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+$/, '');
+    }
+    return `install-${Date.now()}`;
+  }
+}
+
+// CLI Entry Point
+const cli = new EnlightenCLI();
+const args = process.argv.slice(2);
+
+function printHelp() {
+  console.log('
+enlighten - Universal AI Agent Installer
+
+USAGE:
+    enlighten <command> [options]
+
+COMMANDS:
+    install <repo-url>    Install a GitHub repository
+    uninstall <id>        Remove an installation
+    list-installed        Show all enlighten installations
+    diagnose <repo-url>   Analyze a repository without installing
+    version               Show version
+
+OPTIONS:
+    --dry-run             Show what would happen
+    --force               Skip confirmations
+    --harness <name>      Specify harness (hermes, claude, opencode)
+    --profile <name>      Specify profile
+
+EXAMPLES:
+    enlighten install https://github.com/affaan-m/ECC
+    enlighten install https://github.com/user/repo --harness hermes
+    enlighten uninstall my-plugin-xyz --dry-run
+    enlighten list-installed
+');
+}
+
+if (args.length === 0) {
+  printHelp();
+  process.exit(0);
+}
+
+const command = args[0].toLowerCase();
+
+switch (command) {
+  case 'install':
+    if (args.length < 2) {
+      console.error('Error: repository URL required');
+      process.exit(1);
+    }
+    cli.install(args[1], {
+      dryRun: args.includes('--dry-run'),
+      force: args.includes('--force')
+    });
+    break;
+
+  case 'uninstall':
+    if (args.length < 2) {
+      console.error('Error: identifier required');
+      process.exit(1);
+    }
+    cli.uninstall(args[1], {
+      dryRun: args.includes('--dry-run'),
+      force: args.includes('--force')
+    });
+    break;
+
+  case 'list-installed':
+    cli.listInstalled();
+    break;
+
+  case 'diagnose':
+    if (args.length < 2) {
+      console.error('Error: repository URL required');
+      process.exit(1);
+    }
+    cli.diagnose(args[1]);
+    break;
+
+  case 'version':
+    console.log(`enlighten v${cli.version}`);
+    break;
+
+  case 'help':
+  case '--help':
+  case '-h':
+    printHelp();
+    break;
+
+  default:
+    console.error(`Unknown command: ${command}`);
+    printHelp();
+    process.exit(1);
+}

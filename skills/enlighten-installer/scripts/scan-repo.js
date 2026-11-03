@@ -17,10 +17,36 @@ class EnlightenScanner {
   }
 
   detectLanguage(dir) {
+    // Check package.json FIRST - it's the most reliable indicator for JS/TS
+    if (fs.existsSync(path.join(dir, 'package.json'))) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
+        const allDeps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.dependencies };
+        const scripts = { ...pkg.scripts };
+        const content = JSON.stringify(allDeps).toLowerCase() + JSON.stringify(scripts).toLowerCase();
+        
+        // Check for Python bindings in package.json (means it's a polyglot)
+        if (content.includes('python') || content.includes('django') || content.includes('fastapi') || content.includes('flask') || content.includes('pytorch') || content.includes('torch')) {
+          // Prioritize Python if requirements.txt exists
+          if (fs.existsSync(path.join(dir, 'requirements.txt'))) {
+            return { language: 'python', confidence: 0.9 };
+          }
+        }
+        
+        // This is definitely a Node.js/TypeScript project
+        if (pkg.types || content.includes('typescript') || path.basename(dir).includes('ts')) {
+          return { language: 'typescript', confidence: 0.9 };
+        }
+        
+        // Default JS
+        return { language: 'javascript', confidence: 0.8 };
+      } catch (e) {
+        // Fall through to file-based detection
+      }
+    }
+    
     const markers = {
       'python': ['requirements.txt', 'setup.py', 'pyproject.toml', 'Pipfile'],
-      'typescript': ['package.json'],
-      'javascript': ['package.json'],
       'go': ['go.mod', 'go.sum'],
       'rust': ['Cargo.toml', 'Cargo.lock'],
       'java': ['build.gradle', 'pom.xml', 'settings.gradle'],
@@ -37,8 +63,6 @@ class EnlightenScanner {
       for (const file of files) {
         if (fs.existsSync(path.join(dir, file))) {
           return { language: lang, confidence: 0.9 };
-        } else if (globMatch(file, dir)) {
-          return { language: lang, confidence: 0.8 };
         }
       }
     }

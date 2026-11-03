@@ -1,14 +1,14 @@
 {
   "name": "enlighten-agent-tool",
-  "version": "2.0.0",
-  "description": "Universal GitHub repository installer for AI agent harnesses. Install any repo with /enlighten install <url>",
+  "version": "1.0.0",
+  "description": "Universal GitHub repository installer for agent harnesses",
   "keywords": [
-    "ai-agent",
-    "installer",
     "github",
-    "ecc",
+    "installer",
+    "agent",
+    "harness",
+    "claude",
     "hermes",
-    "claude-code",
     "devops",
     "automation"
   ],
@@ -20,11 +20,13 @@
   "files": [
     "bin/",
     "skills/",
-    "docs/"
+    "scripts/",
+    "tests/",
+    "LICENSE",
+    "README.md",
+    "package.json"
   ],
   "scripts": {
-    "install": "node scripts/install.js",
-    "link": "npm link",
     "test": "node tests/test-scanner.js",
     "diagnose": "node bin/enlighten diagnose",
     "help": "node bin/enlighten help"

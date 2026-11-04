@@ -149,10 +149,10 @@ class PostInstall {
     if (fs.existsSync(this.commandsDir)) {
       const commandsDest = path.join(agent.configDir, 'commands');
       try {
-        if (!fs.existsSync(commandsDir)) {
-          fs.mkdirSync(commandsDir, { recursive: true });
+        if (!fs.existsSync(commandsDest)) {
+          fs.mkdirSync(commandsDest, { recursive: true });
         }
-        this.copyRecursive(projectCommandsDir, commandsDest);
+        this.copyRecursive(this.commandsDir, commandsDest);
       } catch (err) {
         // Ignore errors for commands
       }

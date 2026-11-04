@@ -34,7 +34,7 @@ cache/
 .hallmark/
 /.hallmark/
 assets/.hallmark/
-
+brag-output*/
 # Environment & credentials
 .env
 .env.local

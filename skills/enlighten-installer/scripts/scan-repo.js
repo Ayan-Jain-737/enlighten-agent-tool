@@ -8,6 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const { SkillRegistry } = require('./skill-registry');
 
 class EnlightenScanner {
   constructor(options = {}) {
@@ -266,16 +267,92 @@ class EnlightenScanner {
     return mapping[framework.framework] || mapping[language.language] || 'developer';
   }
 
-  scanRepo(repoPath) {
-    console.log(JSON.stringify({
-      status: 'scanning',
-      repo: repoPath,
-      steps: ['detecting-language', 'detecting-framework', 'mapping-profile', 'detecting-install-method']
-    }, null, 2));
+  detectBinaries(dir) {
+    const binaries = [];
+    // package.json bin
+    const pkgPath = path.join(dir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        if (typeof pkg.bin === 'string') {
+          binaries.push(pkg.name || path.basename(dir));
+        } else if (pkg.bin && typeof pkg.bin === 'object') {
+          binaries.push(...Object.keys(pkg.bin));
+        }
+      } catch {}
+    }
 
+    // Cargo.toml bin
+    const cargoPath = path.join(dir, 'Cargo.toml');
+    if (fs.existsSync(cargoPath)) {
+      try {
+        const content = fs.readFileSync(cargoPath, 'utf8');
+        const match = content.match(/\[\[bin\]\][\s\S]*?name\s*=\s*["']([^"']+)["']/);
+        if (match) {
+          binaries.push(match[1]);
+        } else {
+          const pkgMatch = content.match(/\[package\][\s\S]*?name\s*=\s*["']([^"']+)["']/);
+          if (pkgMatch) binaries.push(pkgMatch[1]);
+        }
+      } catch {}
+    }
+
+    // Makefile / bin dir
+    const binDir = path.join(dir, 'bin');
+    if (fs.existsSync(binDir) && fs.statSync(binDir).isDirectory()) {
+      try {
+        const files = fs.readdirSync(binDir);
+        for (const file of files) {
+          if (!file.startsWith('.')) binaries.push(file);
+        }
+      } catch {}
+    }
+
+    return [...new Set(binaries)];
+  }
+
+  detectReadmeSuggestions(dir) {
+    const readmeFiles = ['README.md', 'readme.md', 'README', 'Readme.md'];
+    for (const file of readmeFiles) {
+      const readmePath = path.join(dir, file);
+      if (fs.existsSync(readmePath)) {
+        try {
+          const content = fs.readFileSync(readmePath, 'utf8');
+          const suggestions = [];
+
+          // Look for install codeblocks or commands
+          const installSection = content.match(/##*\s*(?:Installation|Install|Getting Started|Quick Start|Setup)[\s\S]*?(?=\n##|$)/i);
+          const targetText = installSection ? installSection[0] : content;
+
+          if (targetText.match(/npm\s+install\s+-g/i)) suggestions.push('npm install -g');
+          if (targetText.match(/pip\s+install\s+-r/i)) suggestions.push('pip install -r requirements.txt');
+          if (targetText.match(/cargo\s+install/i)) suggestions.push('cargo install --path .');
+          if (targetText.match(/make\s+install/i)) suggestions.push('make install');
+          if (targetText.match(/npx\s+skills\s+add/i)) suggestions.push('npx skills add');
+
+          return {
+            hasReadme: true,
+            suggestedCommands: suggestions,
+            snippet: targetText.slice(0, 300)
+          };
+        } catch {}
+      }
+    }
+    return { hasReadme: false, suggestedCommands: [] };
+  }
+
+  scanRepo(repoPath) {
     const langResult = this.detectLanguage(repoPath);
     const fwResult = this.detectFramework(repoPath, langResult.language);
     const profile = this.getInstallProfile(langResult, fwResult);
+
+    // Detect any agent skills
+    const registry = new SkillRegistry({ dryRun: this.dryRun });
+    const skills = registry.discoverSkills(repoPath);
+
+    // Detect binaries and README suggestions
+    const binaries = this.detectBinaries(repoPath);
+    const readmeSuggestions = this.detectReadmeSuggestions(repoPath);
 
     return {
       status: 'scanned',
@@ -286,6 +363,15 @@ class EnlightenScanner {
         framework: fwResult.framework,
         framework_confidence: fwResult.confidence,
         installMethod: langResult.installMethod
+      },
+      skills: {
+        found: skills.length > 0,
+        count: skills.length,
+        items: skills
+      },
+      suggestions: {
+        binaries,
+        readme: readmeSuggestions
       },
       profile: {
         recommended: profile,

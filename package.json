@@ -1,13 +1,16 @@
 {
   "name": "enlighten-agent-tool",
   "version": "1.0.8",
-  "description": "Universal GitHub repository installer for AI agent harnesses",
+  "description": "Universal GitHub repository and skill installer for AI agent harnesses",
   "keywords": [
     "github",
     "installer",
     "agent",
+    "skills",
     "harness",
     "claude",
+    "gemini",
+    "antigravity",
     "hermes",
     "devops",
     "automation"
@@ -28,8 +31,9 @@
     "package.json"
   ],
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
     "install": "node scripts/postinstall.js",
-    "test": "node tests/test-scanner.js",
+    "test": "node tests/test-scanner.js && node tests/test-skills.js && node tests/test-lifecycle.js",
     "diagnose": "node bin/enlighten diagnose",
     "help": "node bin/enlighten help"
   },

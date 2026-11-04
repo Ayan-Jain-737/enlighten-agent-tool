@@ -11,234 +11,212 @@
 
 </div>
 
-## Universal GitHub Repository Installer for AI Agent Harnesses
+## Universal GitHub Repository & Skill Installer for AI Agents
 
-Enlighten is a powerful, self-contained tool that automatically installs any GitHub repository into your preferred agent harness. It intelligently detects languages, frameworks, and configuration requirements, then adapts the installation process for your specific environment.
+**Enlighten** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in the skills folder, and when an agent uses the skill to download/install any repository, it **automatically discovers and registers all skills in global skills folders** or executes whatever that repository suggests.
 
 <div align="center">
 
-| ✅ Feature | 🔧 Platform Support | 🌐 Languages |
-|------------|---------------------|--------------|
-| Auto-detection | Claude Code | TypeScript |
-| Profile mapping | Hermes | Python |
-| OS adaptation | Opencode | Go |
-| Safe uninstall | Codex | Rust |
-| Dry-run mode | Cursor | Java |
-| Registry tracking | Zed | C# |
+| ✅ Feature | 🔧 Platform Support | 🌐 Languages & Managers |
+|------------|---------------------|--------------------------|
+| 1-Command Install | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
+| Auto Skill Registration | **Open Agents** (`~/.agents/skills/`) | pip, uv, poetry, pipenv |
+| Auto-Synthesis for Tools | **Claude Code** (`~/.claude/skills/`) | cargo (Rust) |
+| Multi-Harness Sync | **Hermes** (`~/.hermes/skills/`) | go build, go install |
+| Binary Linking (`~/.local/bin`) | **OpenCode** (`~/.config/opencode/`) | gradle, maven |
+| Safe Uninstall & Rollback | **Codex**, **Cursor**, **Zed** | cmake, make |
 
 </div>
 
-## Installation
+---
 
-> **Requirements**: Node.js 18+ and Git
+## 🚀 1-Command Installation
 
+Anyone can install Enlighten in a single command using any of these methods:
+
+### Method 1: Universal Shell One-Liner (Recommended)
+```bash
+curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/enlighten-agent-tool/main/scripts/install.sh | bash
+```
+
+### Method 2: Open Agent Skills CLI
+```bash
+npx skills add Ayan-Jain-737/enlighten-agent-tool -g -y
+```
+
+### Method 3: NPM Global Install
 ```bash
 npm install -g enlighten-agent-tool
 ```
 
-After installation completes, the skills are automatically configured:
-
+### Method 4: From Local Clone
 ```bash
-# Skills are installed to your detected agent framework
-# (Hermes, Claude Code, Opencode, etc.)
+git clone https://github.com/Ayan-Jain-737/enlighten-agent-tool.git
+cd enlighten-agent-tool
+./scripts/install.sh
 ```
 
-## Quick Start
+### What Happens on Installation:
+- ✅ Links the `enlighten` executable directly to `~/.local/bin/enlighten` (in standard system PATH).
+- ✅ Registers the `enlighten`, `enlighten-installer`, and `enlighten-uninstaller` skills into all agent skills directories (`~/.gemini/skills/`, `~/.agents/skills/`, `~/.claude/skills/`, `~/.hermes/skills/`, etc.).
+- ✅ Installs slash command `/enlighten` in Claude Code and Hermes.
+- ✅ Updates `~/.agents/.skill-lock.json`.
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-# Install any GitHub repository
-enlighten install https://github.com/user/repo
+# Install any GitHub repository (skills are automatically registered globally!)
+enlighten install vercel-labs/agent-skills
 
-# Preview installation (dry-run)
+# Install by full URL
+enlighten install https://github.com/affaan-m/ECC
+
+# Preview installation without making changes (dry-run)
 enlighten install https://github.com/user/repo --dry-run
 
-# Specify your harness
-enlighten install https://github.com/user/repo --harness hermes
+# Output machine-readable JSON for agent consumption
+enlighten install https://github.com/user/repo --json
 
-# Use within agent frameworks
-/enlighten install https://github.com/user/repo
-/enlighten diagnose https://github.com/affaan-m/ECC
+# Diagnose repository before installing
+enlighten diagnose https://github.com/user/repo
+
+# List all managed repositories and registered skills
+enlighten list-installed
+
+# Safely remove a repository and unregister its skills
+enlighten uninstall <identifier> --force
 ```
 
-## Commands
+### Using Inside Agent Conversations
+Any AI agent that has loaded the `enlighten` skill can run:
+```bash
+/enlighten install https://github.com/user/repo
+```
+or execute via the terminal tool:
+```bash
+enlighten install <repo-url>
+```
+
+---
+
+## 🧠 How Auto-Registration Works
+
+When an agent or developer runs `enlighten install <repo-url>`:
+
+```
+┌────────────────────────────────────────────────────────┐
+│ 1. Clone / Fetch Repository                            │
+│    Cloned into ~/.enlighten/repos/<owner>/<repo>       │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+┌──────────────────────────▼─────────────────────────────┐
+│ 2. Deep Skill Discovery                                │
+│    Finds SKILL.md at root, in skills/*, .agents/*      │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+             Skills found? │
+            ┌──────────────┴──────────────┐
+       YES  │                             │ NO
+┌───────────▼──────────────────┐  ┌───────▼──────────────────────┐
+│ Register Discovered Skills   │  │ Auto-Synthesize Skill        │
+│ Link into ~/.gemini/skills/, │  │ Generate SKILL.md wrapper for│
+│ ~/.agents/skills/, etc.      │  │ the newly installed tool     │
+└───────────┬──────────────────┘  └───────┬──────────────────────┘
+            └──────────────┬──────────────┘
+                           │
+┌──────────────────────────▼─────────────────────────────┐
+│ 3. Execute "Whatever That Repo Suggests"                │
+│    Runs npm install, pip install, cargo build, etc.    │
+│    Symlinks executables to ~/.local/bin/               │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+┌──────────────────────────▼─────────────────────────────┐
+│ 4. Update Registry & Lockfiles                         │
+│    Recorded in ~/.enlighten/cache/installed.json       │
+│    Recorded in ~/.agents/.skill-lock.json              │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📋 Commands
 
 | Command | Description |
 |---------|-------------|
-| `enlighten install <url>` | Install a GitHub repository |
-| `enlighten uninstall <id>` | Remove an installed repository |
-| `enlighten list-installed` | Show all managed installations |
-| `enlighten diagnose <url>` | Analyze repository without installing |
+| `enlighten install <url>` | Clone repo, register skills globally, run suggested build steps |
+| `enlighten diagnose <url>` | Analyze repository without installing (languages, frameworks, skills) |
+| `enlighten list-installed` | Show all managed installations and their registered skills |
+| `enlighten uninstall <id> --force` | Safe removal of repository, binaries, and registered skills |
+| `enlighten --help` | Show command line help and options |
 
-## Intelligent Detection
+---
 
-Enlighten automatically scans repositories to detect:
+## 🌐 Supported Platforms & Global Skill Locations
 
-```bash
-$ enlighten diagnose https://github.com/vercel/next.js
-{
-  "language": "typescript",
-  "framework": "next",
-  "profile": "web-developer",
-  "confidence": 0.95
-}
-```
+| Agent Framework | Global Skills Directory | Slash Commands |
+|-----------------|-------------------------|----------------|
+| **Antigravity / Gemini** | `~/.gemini/skills/` | Automatic skill progressive disclosure |
+| **Open Agents** | `~/.agents/skills/` & `.skill-lock.json` | `npx skills` compatible |
+| **Claude Code** | `~/.claude/skills/` | `~/.claude/commands/enlighten.md` (`/enlighten`) |
+| **Hermes** | `~/.hermes/skills/` | `~/.hermes/commands/enlighten.md` (`/enlighten`) |
+| **OpenCode** | `~/.config/opencode/skills/` | Config plugin / skill directory |
+| **Codex** | `~/.codex/skills/` | Global skills directory |
+| **Cursor** | `~/.cursor/skills/` | Workspace and global skills |
+| **Zed** | `~/.zed/skills/` | Global skills |
 
-### Language & Framework Detection Matrix
+---
 
-| Package File | Language | Framework | Profile |
-|--------------|----------|-----------|---------|
-| `package.json` | TypeScript | Next.js, React, Vue, Svelte | web-developer |
-| `requirements.txt` | Python | Django, FastAPI | python-backend |
-| `go.mod` | Go | Gin, Echo | go-developer |
-| `Cargo.toml` | Rust | Actix, Rocket | rust-developer |
-| `build.gradle` | Java | Spring Boot | java-enterprise |
-| `*.csproj` | C# | ASP.NET | dotnet-developer |
-
-## Supported Platforms
-
-Enlighten works seamlessly across all major AI agent development environments:
-
-- **Claude Code** - Anthropic's official agent harness
-- **Hermes** - Open-source agent management system  
-- **Opencode** - Open-source AI coding agent
-- **Codex** - OpenAI's Codex CLI tool
-- **Cursor** - AI-powered code editor
-- **Zed** - High-performance editor with AI features
-
-## Configuration
-
-Enlighten can be configured using environment variables:
-
-```bash
-export ENLIGHTEN_CACHE_DIR=~/.enlighten/cache      # Cache location
-export ENLIGHTEN_LOG_LEVEL=info                    # Logging level
-export ENLIGHTEN_TIMEOUT=300                         # Timeout in seconds
-```
-
-## Development
-
-```bash
-# Clone the repository
-git clone https://github.com/Ayan-Jain-737/enlighten-agent-tool
-cd enlighten-agent-tool
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Link globally for development
-npm link
-```
-
-## Architecture
+## 🏗️ Architecture
 
 ```
 enlighten-agent-tool/
 ├── bin/
-│   └── enlighten          # CLI executable
+│   └── enlighten                    # CLI executable (full lifecycle engine)
 ├── skills/
-│   ├── enlighten/         # Main command skill
-│   ├── enlighten-installer/ # Scanner and analyzer
-│   └── enlighten-uninstaller/ # Clean removal
+│   ├── enlighten/                   # Primary agent skill definition
+│   │   ├── SKILL.md
+│   │   └── scripts/dispatch.js      # Resilient CLI dispatcher
+│   ├── enlighten-installer/         # Scanner, adapter & skill registry engine
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   │       ├── scan-repo.js         # Deep repo & skill scanner
+│   │       ├── skill-registry.js    # Multi-harness registration manager
+│   │       └── adapt-install.js     # OS & harness command adapter
+│   └── enlighten-uninstaller/       # Safe removal skill
+│       └── SKILL.md
+├── commands/
+│   └── enlighten.md                 # Agent slash command definition
 ├── scripts/
-│   ├── postinstall.js     # NPM postinstall script
-│   └── install.js         # Installation script
+│   ├── install.sh                   # Universal 1-command curl installer
+│   ├── install.js                   # Node.js self-registration script
+│   └── postinstall.js               # NPM postinstall hook
 ├── tests/
-│   └── test-scanner.js    # Verification tests
+│   ├── test-scanner.js              # Scanner unit tests
+│   ├── test-skills.js               # Multi-harness skill registration tests
+│   └── test-lifecycle.js            # End-to-end install/uninstall lifecycle tests
+├── package.json
 └── README.md
 ```
 
-## API Usage
+---
 
-```javascript
-const { install, diagnose } = require('enlighten-agent-tool');
+## 🧪 Testing
 
-// Install programmatically
-await install({
-  url: 'https://github.com/user/repo',
-  harness: 'hermes',
-  dryRun: false
-});
-
-// Get diagnostic info
-const info = await diagnose('https://github.com/user/repo');
-console.log(info.language, info.framework);
-```
-
-## Safety Features
-
-- **Dry-run mode** - Preview changes before applying
-- **Confirmation prompts** - Review destructive operations
-- **Rollback capability** - Revert installations if needed
-- **Integrity checks** - Verify successful installations
-
-## Troubleshooting
-
-### Command Not Found
-
-If `/enlighten` or `enlighten` command is not recognized:
-
-1. Ensure npm packages are in your PATH:
-   ```bash
-   export PATH="$HOME/.npm-global/bin:$PATH"
-   ```
-
-2. For agent frameworks, manually copy skills:
-   ```bash
-   # For Hermes
-   cp -r skills/* ~/.hermes/skills/
-   
-   # For Claude Code
-   cp -r skills/* ~/.claude/skills/
-   ```
-
-### Permission Errors
-
-If you get EACCES errors during installation:
+Run the full test suite with:
 
 ```bash
-# Option 1: Use nvm (recommended)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-
-# Option 2: Configure npm to use home directory
-npm config set prefix '~/.npm-global'
+npm test
 ```
 
-### Framework Detection Issues
-
-Enlighten auto-detects your agent framework. To override:
-
-```bash
-enlighten install <url> --harness hermes
-enlighten install <url> --harness claude
-```
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
-
-## License
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
-
-## Support
-
-- 📖 **Documentation**: [enlighten.ai/docs](https://enlighten.ai/docs)
-- 🐛 **Issue Tracker**: [GitHub Issues](https://github.com/Ayan-Jain-737/enlighten-agent-tool/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/Ayan-Jain-737/enlighten-agent-tool/discussions)
-
-## Credits
-
-Created by [Ayan-Jain-737](https://github.com/Ayan-Jain-737)
-
-Thanks to all [contributors](https://github.com/Ayan-Jain-737/enlighten-agent-tool/graphs/contributors) who help make this project better!
+Includes:
+- Scanner tests for language, framework, dependencies, and skills.
+- Skill discovery and multi-harness global registration tests.
+- Full CLI lifecycle tests (`diagnose` -> `install` -> `list-installed` -> `uninstall`).
 
 ---
 
-<div align="center">
+## 📄 License
 
-Made with ❤️ by the Enlight Team
-
-</div>
+MIT © Ayan Jain

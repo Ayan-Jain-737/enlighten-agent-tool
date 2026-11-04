@@ -1,25 +1,46 @@
 #!/usr/bin/env node
 /**
- * enlighten dispatcher - Called by /enlighten command
- * Routes to appropriate action
+ * enlighten dispatcher - Called by /enlighten slash command or directly by agent
+ * Routes to EnlightCLI
  */
 
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-// Path to main CLI
-const cliPath = path.join(__dirname, '..', 'bin', 'enlighten');
+function resolveCliPath() {
+  // 1. Check local bin in PATH
+  const localBin = path.join(os.homedir(), '.local', 'bin', 'enlighten');
+  if (fs.existsSync(localBin)) return localBin;
+
+  // 2. Check project root relative to this file
+  const candidate = path.resolve(__dirname, '..', '..', '..', 'bin', 'enlighten');
+  if (fs.existsSync(candidate)) return candidate;
+
+  // 3. Check ~/.enlighten/enlighten-agent-tool/bin/enlighten
+  const defaultClone = path.join(os.homedir(), '.enlighten', 'enlighten-agent-tool', 'bin', 'enlighten');
+  if (fs.existsSync(defaultClone)) return defaultClone;
+
+  return 'enlighten';
+}
 
 function dispatch(args) {
-  const cli = spawn('node', [cliPath, ...args], {
-    stdio: 'inherit',
-    env: { ...process.env }
-  });
+  const cliPath = resolveCliPath();
 
-  cli.on('close', (code) => {
-    process.exit(code);
-  });
+  if (cliPath === 'enlighten') {
+    const cli = spawn('enlighten', args, {
+      stdio: 'inherit',
+      env: { ...process.env }
+    });
+    cli.on('close', (code) => process.exit(code || 0));
+  } else {
+    const cli = spawn('node', [cliPath, ...args], {
+      stdio: 'inherit',
+      env: { ...process.env }
+    });
+    cli.on('close', (code) => process.exit(code || 0));
+  }
 }
 
 if (require.main === module) {
@@ -27,4 +48,4 @@ if (require.main === module) {
   dispatch(args);
 }
 
-module.exports = { dispatch };
+module.exports = { dispatch, resolveCliPath };

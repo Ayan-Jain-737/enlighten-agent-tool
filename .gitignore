@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+package-lock.json.bak
+
+# Enlighten local cache & installs
+.enlighten/
+cache/
+
+# Hallmark review & before records
+/.hallmark/
+.hallmark/before/
+.hallmark/before.json
+.hallmark/before.txt
+.hallmark/compare.html
+
+# Environment & credentials
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Editor configurations
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Coverage & test artifacts
+coverage/
+.nyc_output/

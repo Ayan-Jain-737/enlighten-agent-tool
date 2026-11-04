@@ -1,12 +1,27 @@
 #!/usr/bin/env node
 /**
- * enlighten - Universal GitHub Repository Installer
- * Main entry point
+ * enlighten-agent-tool
+ * Universal GitHub Repository & Skill Installer for AI Agent Harnesses
  */
 
+const { EnlightCLI } = require('./bin/enlighten');
+const { EnlightenScanner } = require('./skills/enlighten-installer/scripts/scan-repo');
+const { SkillRegistry } = require('./skills/enlighten-installer/scripts/skill-registry');
+const { ReadmeGuide } = require('./skills/enlighten-installer/scripts/readme-guide');
+const { ScriptAdapter } = require('./skills/enlighten-installer/scripts/adapt-install');
+
+const defaultCli = new EnlightCLI();
+
 module.exports = {
-  install: require('./skills/enlighten-installer/scripts/install.js').install,
-  uninstall: require('./skills/enlighten-uninstaller/scripts/uninstall.js').uninstall,
-  diagnose: require('./skills/enlighten-installer/scripts/scan-repo.js').diagnose,
-  listInstalled: require('./skills/enlighten-installer/scripts/list-installed.js').listInstalled
+  EnlightCLI,
+  EnlightenScanner,
+  SkillRegistry,
+  ReadmeGuide,
+  ScriptAdapter,
+
+  // Programmatic API functions
+  install: (repoUrl, options = {}) => defaultCli.install(repoUrl, options),
+  diagnose: (repoUrl, options = {}) => defaultCli.diagnose(repoUrl, options),
+  listInstalled: (options = {}) => defaultCli.listInstalled(options),
+  uninstall: (identifier, options = {}) => defaultCli.uninstall(identifier, options)
 };

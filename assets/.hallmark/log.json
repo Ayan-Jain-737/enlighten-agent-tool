@@ -1,22 +1,25 @@
 [
- {
-  "shape": "Feature Ledger",
-  "theme": "Cobalt",
-  "axes": "light/grotesk-sans/cool",
-  "hero": "Field",
-  "nav": "edge-aligned",
-  "footer": "mast",
-  "imagery": "product built in hero",
-  "signature": "CLI output showing auto-detection",
-  "sections": [
-   "Hero",
-   "Features",
-   "Quick Start",
-   "Footer"
-  ],
-  "waived": [],
-  "prompt": "enlighten-agent-tool installer",
-  "date": "2026-11-04",
-  "mode": "build"
- }
+  {
+    "shape": "Feature Ledger",
+    "theme": "Cobalt",
+    "axes": "light/grotesk-sans/cool",
+    "hero": "Field",
+    "nav": "edge-aligned",
+    "footer": "mast",
+    "imagery": "product built in hero and terminal",
+    "signature": "CLI output showing README check and global sync",
+    "sections": [
+      "Hero",
+      "Features",
+      "Platforms",
+      "Quick Start",
+      "Footer"
+    ],
+    "waived": [],
+    "prompt": "enlighten universal github repository and skill installer for AI agents",
+    "date": "2026-11-04",
+    "mode": "redesign",
+    "depth": "full",
+    "sloplint": "0 FAIL, 0 REFLEX, 0 WARN"
+  }
 ]

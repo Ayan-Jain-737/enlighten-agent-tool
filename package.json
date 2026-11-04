@@ -2,6 +2,7 @@
   "name": "enlighten-agent-tool",
   "version": "1.0.8",
   "description": "Universal GitHub repository and skill installer for AI agent harnesses",
+  "main": "index.js",
   "keywords": [
     "github",
     "installer",
@@ -25,7 +26,7 @@
     "skills/",
     "commands/",
     "scripts/",
-    "tests/",
+    "index.js",
     "LICENSE",
     "README.md",
     "package.json"

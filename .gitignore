@@ -35,6 +35,11 @@ cache/
 /.hallmark/
 assets/.hallmark/
 brag-output*/
+
+# Netlify deployment and local state
+.netlify/
+netlify.toml
+
 # Environment & credentials
 .env
 .env.local

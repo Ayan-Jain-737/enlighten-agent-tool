@@ -85,6 +85,16 @@ class SkillFinder {
         installs: 45000
       },
       {
+        name: 'ponytail',
+        description: 'Forces the laziest, simplest solution that works — YAGNI, stdlib over deps, one line before fifty',
+        source: 'dietrichgebert/ponytail',
+        type: 'agent-skill',
+        category: 'code-quality',
+        tags: ['ponytail', 'lazy', 'minimal', 'yagni', 'clean-code', 'simplicity'],
+        stars: 1200,
+        installs: 15000
+      },
+      {
         name: 'biome-formatter-linter',
         description: 'Extremely fast toolchain for JavaScript, TypeScript, and JSON formatting & linting',
         source: 'biomejs/biome',
@@ -200,6 +210,44 @@ class SkillFinder {
       } catch {}
     }
 
+    // 3. Scan local agent harness skill directories (e.g. ~/.gemini/skills, ~/.agents/skills, ~/.claude/skills)
+    const harnessDirs = [
+      path.join(this.homedir, '.gemini', 'skills'),
+      path.join(this.homedir, '.agents', 'skills'),
+      path.join(this.homedir, '.claude', 'skills'),
+      path.join(this.homedir, '.codex', 'skills'),
+      path.join(this.homedir, '.cursor', 'skills')
+    ];
+
+    for (const hDir of harnessDirs) {
+      if (fs.existsSync(hDir)) {
+        try {
+          const entries = fs.readdirSync(hDir, { withFileTypes: true });
+          for (const ent of entries) {
+            if (ent.isDirectory() || ent.isSymbolicLink()) {
+              const skillName = ent.name.toLowerCase();
+              if (!installed.has(skillName)) {
+                let description = '';
+                const skillMd = path.join(hDir, ent.name, 'SKILL.md');
+                if (fs.existsSync(skillMd)) {
+                  try {
+                    const content = fs.readFileSync(skillMd, 'utf8').slice(0, 1000);
+                    const descMatch = content.match(/description:\s*(?:>|-)?\s*([^\n\r]+)/i);
+                    if (descMatch) description = descMatch[1].trim();
+                  } catch {}
+                }
+                installed.set(skillName, {
+                  source: `local/${ent.name}`,
+                  description: description || `Locally installed skill in ${path.basename(path.dirname(hDir))}`,
+                  installedAt: new Date().toISOString()
+                });
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+
     return installed;
   }
 
@@ -281,6 +329,7 @@ class SkillFinder {
     for (const item of this.curatedCatalog) {
       const matchScore = this.computeScore(item, rawTokens);
       if (rawTokens.length === 0 || matchScore > 0) {
+        seen.add(item.name.toLowerCase());
         seen.add(item.source.toLowerCase());
         const isInstalled = localInstalled.has(item.name.toLowerCase()) ||
                             localInstalled.has(item.source.toLowerCase());
@@ -288,6 +337,29 @@ class SkillFinder {
           ...item,
           score: matchScore + (item.installs ? Math.log10(item.installs) : (item.stars ? Math.log10(item.stars) : 1)),
           isInstalled
+        });
+      }
+    }
+
+    // 1b. Search Local Installed Skills (catches locally installed skills not in curated catalog)
+    for (const [installedName, details] of localInstalled.entries()) {
+      if (seen.has(installedName)) continue;
+      const localItem = {
+        name: installedName,
+        description: details.description || `Locally installed agent skill (${installedName})`,
+        source: details.source || `local/${installedName}`,
+        type: 'agent-skill',
+        category: 'installed',
+        tags: [installedName],
+        isInstalled: true
+      };
+      const matchScore = this.computeScore(localItem, rawTokens);
+      if (rawTokens.length === 0 || matchScore > 0) {
+        seen.add(installedName);
+        scoredResults.push({
+          ...localItem,
+          score: matchScore + 10,
+          isInstalled: true
         });
       }
     }
@@ -321,7 +393,74 @@ class SkillFinder {
   }
 
   /**
-   * Compute keyword relevance score
+   * Calculate Levenshtein edit distance between two strings
+   */
+  levenshteinDistance(s1, s2) {
+    if (s1 === s2) return 0;
+    if (!s1 || !s1.length) return (s2 || '').length;
+    if (!s2 || !s2.length) return (s1 || '').length;
+
+    const d = [];
+    for (let i = 0; i <= s1.length; i++) d[i] = [i];
+    for (let j = 0; j <= s2.length; j++) d[0][j] = j;
+
+    for (let i = 1; i <= s1.length; i++) {
+      for (let j = 1; j <= s2.length; j++) {
+        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(
+          d[i - 1][j] + 1,
+          d[i][j - 1] + 1,
+          d[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return d[s1.length][s2.length];
+  }
+
+  /**
+   * Normalized fuzzy matching score between [0, 1]
+   */
+  fuzzyMatch(target, query) {
+    if (!target || !query) return 0;
+    const t = target.toLowerCase();
+    const q = query.toLowerCase();
+
+    if (t === q) return 1.0;
+    if (t.includes(q) && q.length >= 3) return 0.85;
+
+    // Check individual words or segments (e.g. split on '-', '_', ' ', '/')
+    const words = t.split(/[\s\-_/.]+/).filter(Boolean);
+    for (const w of words) {
+      if (w === q) return 0.95;
+      if (w.includes(q) && q.length >= 3) return 0.8;
+      if (q.includes(w) && w.length >= 4) return 0.75;
+      const dist = this.levenshteinDistance(w, q);
+      const maxLen = Math.max(w.length, q.length);
+      const minLen = Math.min(w.length, q.length);
+      if (minLen / maxLen >= 0.6) {
+        const maxAllowed = maxLen <= 4 ? 1 : (maxLen <= 7 ? 2 : 3);
+        if (dist <= maxAllowed) {
+          return Math.max(0, 1 - (dist / maxLen));
+        }
+      }
+    }
+
+    // Direct whole string distance
+    const dist = this.levenshteinDistance(t, q);
+    const maxLen = Math.max(t.length, q.length);
+    const minLen = Math.min(t.length, q.length);
+    if (minLen / maxLen >= 0.6) {
+      const maxAllowed = maxLen <= 4 ? 1 : (maxLen <= 7 ? 2 : 3);
+      if (dist <= maxAllowed) {
+        return Math.max(0, 1 - (dist / maxLen));
+      }
+    }
+
+    return 0;
+  }
+
+  /**
+   * Compute keyword relevance score with typo tolerance
    */
   computeScore(item, tokens) {
     if (tokens.length === 0) return 1;
@@ -333,15 +472,56 @@ class SkillFinder {
     const tagsLower = (item.tags || []).map(t => t.toLowerCase());
 
     for (const token of tokens) {
-      if (nameLower === token) score += 20;
-      else if (nameLower.includes(token)) score += 10;
+      // 1. Name exact or fuzzy
+      if (nameLower === token) {
+        score += 25;
+      } else if (nameLower.includes(token)) {
+        score += 15;
+      } else {
+        const nameFuzzy = this.fuzzyMatch(nameLower, token);
+        if (nameFuzzy >= 0.65) {
+          score += Math.round(nameFuzzy * 22);
+        }
+      }
 
-      if (sourceLower.includes(token)) score += 8;
+      // 2. Source / Repo exact or fuzzy
+      if (sourceLower.includes(token)) {
+        score += 10;
+      } else {
+        const repoName = sourceLower.split('/').pop() || '';
+        const repoFuzzy = this.fuzzyMatch(repoName, token);
+        if (repoFuzzy >= 0.65) {
+          score += Math.round(repoFuzzy * 14);
+        }
+      }
 
-      if (tagsLower.includes(token)) score += 8;
-      else if (tagsLower.some(t => t.includes(token))) score += 4;
+      // 3. Tags exact or fuzzy
+      if (tagsLower.includes(token)) {
+        score += 10;
+      } else if (tagsLower.some(t => t.includes(token))) {
+        score += 5;
+      } else {
+        for (const tag of tagsLower) {
+          const tagFuzzy = this.fuzzyMatch(tag, token);
+          if (tagFuzzy >= 0.7) {
+            score += Math.round(tagFuzzy * 8);
+            break;
+          }
+        }
+      }
 
-      if (descLower.includes(token)) score += 5;
+      // 4. Description exact or fuzzy
+      if (descLower.includes(token)) {
+        score += 5;
+      } else {
+        const descWords = descLower.split(/\s+/).slice(0, 30);
+        for (const word of descWords) {
+          if (word.length >= 4 && this.fuzzyMatch(word, token) >= 0.75) {
+            score += 3;
+            break;
+          }
+        }
+      }
     }
 
     return score;
@@ -359,7 +539,7 @@ class SkillFinder {
     out += '─'.repeat(60) + '\n';
 
     results.forEach((item, idx) => {
-      const statusBadge = item.isInstalled ? ' [Installed]' : '';
+      const statusBadge = item.isInstalled ? ' \x1b[32m[Installed]\x1b[0m' : '';
       const typeBadge = item.type === 'agent-skill' ? '🧠 Agent Skill' : '🛠️ CLI Tool';
       const stats = item.installs
         ? `${Math.round(item.installs / 1000)}k installs`
@@ -368,7 +548,11 @@ class SkillFinder {
       out += `\n${idx + 1}. \x1b[1m${item.name}\x1b[0m${statusBadge} (${typeBadge}${stats ? ' • ' + stats : ''})\n`;
       out += `   Source: ${item.source}\n`;
       out += `   ${item.description}\n`;
-      out += `   🚀 \x1b[36menlighten install ${item.source}\x1b[0m\n`;
+      if (item.isInstalled) {
+        out += `   ✨ \x1b[32mInstalled & ready in your active agent harness\x1b[0m\n`;
+      } else {
+        out += `   🚀 \x1b[36menlighten install ${item.source}\x1b[0m\n`;
+      }
     });
 
     out += '\n' + '─'.repeat(60) + '\n';

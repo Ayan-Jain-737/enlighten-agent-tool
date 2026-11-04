@@ -59,6 +59,26 @@ const { SkillFinder } = require('../skills/enlighten-installer/scripts/skill-fin
   assert(textOutput.includes('react-best-practices'), 'Must contain skill name');
   console.log('✅ Test 4 passed: Terminal output formatting verified\n');
 
+  // Test 5: Typo fuzzy matching (e.g. ponlytail -> ponytail)
+  console.log('Test 5: Checking typo & fuzzy matching for "ponlytail"...');
+  const fuzzyResults = await finder.search('ponlytail');
+  assert(fuzzyResults.length > 0, 'Should find ponytail for typo query ponlytail');
+  assert.strictEqual(fuzzyResults[0].name, 'ponytail', 'First result should be ponytail');
+  assert.strictEqual(fuzzyResults[0].source, 'dietrichgebert/ponytail', 'Source should be dietrichgebert/ponytail');
+  console.log('✅ Test 5 passed: Typo and fuzzy matching verified\n');
+
+  // Test 6: Direct harness folder scan (~/.gemini/skills/)
+  console.log('Test 6: Checking harness directory scan (.gemini/skills)...');
+  const geminiSkillsDir = path.join(testHome, '.gemini', 'skills', 'ponytail');
+  fs.mkdirSync(geminiSkillsDir, { recursive: true });
+  fs.writeFileSync(path.join(geminiSkillsDir, 'SKILL.md'), '---\nname: ponytail\ndescription: Forces the laziest solution\n---\n');
+
+  const afterHarnessResults = await finder.search('ponlytail');
+  const foundPonytail = afterHarnessResults.find(r => r.name === 'ponytail');
+  assert(foundPonytail, 'Should find ponytail');
+  assert.strictEqual(foundPonytail.isInstalled, true, 'Should detect local harness installation');
+  console.log('✅ Test 6 passed: Active harness scanning verified\n');
+
   // Cleanup
   fs.rmSync(testHome, { recursive: true, force: true });
 

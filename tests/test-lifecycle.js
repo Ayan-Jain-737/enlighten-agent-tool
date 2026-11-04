@@ -62,17 +62,19 @@ description: An awesome skill for testing
   assert(dryRes.guide_command.includes('skills add'));
   console.log('✅ Test 2 passed: Dry-run install\n');
 
-  // Test 3: Local installation fallback & skill sync
-  console.log('Test 3: Install repository...');
-  const installRes = await cli.install(mockRepo, { skipGuide: true, json: true });
+  // Test 3: Local installation fallback & skill sync (Targeting AGY / Gemini)
+  console.log('Test 3: Install repository for active agent (gemini)...');
+  const installRes = await cli.install(mockRepo, { skipGuide: true, targetHarness: 'gemini', json: true });
   assert.strictEqual(installRes.status, 'success');
   assert(installRes.skills_registered.some(s => s.name === 'awesome-skill'));
 
-  // Verify skill registered in harnesses
+  // Verify skill registered ONLY in active harness (.gemini) and global (.agents)
   assert(fs.existsSync(path.join(testHome, '.gemini', 'skills', 'awesome-skill', 'SKILL.md')), 'Should be in .gemini');
   assert(fs.existsSync(path.join(testHome, '.agents', 'skills', 'awesome-skill', 'SKILL.md')), 'Should be in .agents');
-  assert(fs.existsSync(path.join(testHome, '.claude', 'skills', 'awesome-skill', 'SKILL.md')), 'Should be in .claude');
-  console.log('✅ Test 3 passed: Install & global registration\n');
+  assert(!fs.existsSync(path.join(testHome, '.claude', 'skills', 'awesome-skill')), 'Should NOT be in .claude when targeting gemini');
+  assert(!fs.existsSync(path.join(testHome, '.codex')), 'Should NOT create .codex');
+  assert(!fs.existsSync(path.join(testHome, '.zed')), 'Should NOT create .zed');
+  console.log('✅ Test 3 passed: Install for active agent & global only (no codex/zed created)\n');
 
   // Test 4: List Installed
   console.log('Test 4: List installed...');

@@ -47,17 +47,14 @@ class SelfInstaller {
     this.installedSkills.forEach(s => {
       console.log(`    - ${s.name} (${s.harnesses.length} agent harnesses)`);
     });
-    console.log('\nSupported Agent Harnesses:');
-    console.log('  ✓ Antigravity / Gemini (~/.gemini/skills/)');
-    console.log('  ✓ Open Agents (~/.agents/skills/)');
-    console.log('  ✓ Claude Code (~/.claude/skills/)');
-    console.log('  ✓ Hermes (~/.hermes/skills/)');
-    console.log('  ✓ OpenCode (~/.config/opencode/skills/)');
-    console.log('  ✓ Codex (~/.codex/skills/)');
-    console.log('  ✓ Cursor (~/.cursor/skills/)');
-    console.log('  ✓ Zed (~/.zed/skills/)');
-    console.log('\n💡 Tip: Your AI agents can now use the skill to install any repository,');
-    console.log('and all repository skills will register globally automatically!\n');
+    console.log('\nRegistered In:');
+    const registeredHarnesses = new Set();
+    this.installedSkills.forEach(s => s.harnesses.forEach(h => registeredHarnesses.add(h)));
+    registeredHarnesses.forEach(h => {
+      console.log(`  ✓ ${h}`);
+    });
+    console.log('\n💡 Tip: Your active AI agent can now use the skill to install any repository,');
+    console.log('and skills will register for your active agent and global store automatically!\n');
   }
 
   linkBinary() {
@@ -84,6 +81,7 @@ class SelfInstaller {
   registerProjectSkills() {
     const skillsDir = path.join(this.projectDir, 'skills');
     const skillNames = ['enlighten', 'enlighten-installer', 'enlighten-uninstaller'];
+    const isAllHarnesses = process.argv.includes('--all') || process.argv.includes('--all-agents');
 
     for (const name of skillNames) {
       const dir = path.join(skillsDir, name);
@@ -101,7 +99,7 @@ class SelfInstaller {
 
         const result = this.registry.registerSkill(skillInfo, {
           repoUrl: 'https://github.com/Ayan-Jain-737/enlighten-agent-tool.git',
-          allHarnesses: true
+          allHarnesses: isAllHarnesses
         });
 
         this.installedSkills.push({
@@ -115,7 +113,8 @@ class SelfInstaller {
 
   registerCommands() {
     const commandsDir = path.join(this.projectDir, 'commands');
-    const registered = this.registry.registerCommands(commandsDir);
+    const isAllHarnesses = process.argv.includes('--all') || process.argv.includes('--all-agents');
+    const registered = this.registry.registerCommands(commandsDir, { allHarnesses: isAllHarnesses });
     for (const item of registered) {
       console.log(`✅ Registered slash command "/${item.file.replace('.md', '')}" in ${item.harness}`);
     }

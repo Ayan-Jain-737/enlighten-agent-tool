@@ -4,7 +4,7 @@ description: >-
   Repository scanner, adapter, and installation engine.
   Scans any GitHub repository for programming languages, frameworks, package managers,
   binaries, and agent skills. Adapts installation steps for the host OS and agent harness,
-  and automatically registers skills into global skill folders.
+  and registers skills into the caller agent folder and global storage without polluting unused agent directories.
 ---
 
 # Enlighten Installer Engine
@@ -14,7 +14,7 @@ The **Enlighten Installer** is the core scanning and adaptation engine for Enlig
 ## Features
 
 - ✅ **Deep Skill Discovery**: Recursively finds `SKILL.md` at root or in `skills/` directories
-- ✅ **Global Multi-Harness Registration**: Registers skills in Antigravity, Open Agents, Claude Code, Hermes, OpenCode, Codex, Cursor
+- ✅ **Active Agent & Global Registration**: Registers skills in the active agent (e.g. Antigravity / Gemini) and global Open Agents store, avoiding unwanted folders for other agents
 - ✅ **Package Manager Auto-Detection**: Handles npm, yarn, pnpm, bun, pip, uv, poetry, cargo, go, gradle, maven, cmake, make
 - ✅ **Binary Exposure**: Exposes discovered executables to `~/.local/bin`
 - ✅ **Dry-Run Safe**: Previews installations and skill registrations without changes
@@ -22,8 +22,8 @@ The **Enlighten Installer** is the core scanning and adaptation engine for Enlig
 ## CLI Commands
 
 ```bash
-# Direct installer CLI:
-enlighten install <repo-url> [--dry-run] [--force] [--json]
+# Direct installer CLI (targets active agent and global):
+enlighten install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
 
 # Diagnose without installing:
 enlighten diagnose <repo-url>
@@ -33,4 +33,4 @@ enlighten diagnose <repo-url>
 
 - `scripts/scan-repo.js` - Standalone repository scanner
 - `scripts/adapt-install.js` - OS and harness command adapter
-- `scripts/skill-registry.js` - Skill discovery and multi-harness global registration
+- `scripts/skill-registry.js` - Skill discovery and targeted active/global registration

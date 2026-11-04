@@ -28,13 +28,32 @@ class ScriptAdapter {
   }
 
   detectHarness() {
-    if (this.harness !== 'auto') return this.harness;
+    if (this.harness && this.harness !== 'auto') return this.harness;
+
+    // Check explicit enlighten env vars
+    if (process.env.ENLIGHTEN_CALLER_HARNESS) return process.env.ENLIGHTEN_CALLER_HARNESS;
+    if (process.env.ENLIGHTEN_TARGET_HARNESS) return process.env.ENLIGHTEN_TARGET_HARNESS;
+    if (process.env.ENLIGHTEN_HARNESS) return process.env.ENLIGHTEN_HARNESS;
+
+    // Check Antigravity / Gemini runtime
+    if (process.env.ANTIGRAVITY_AGENT ||
+        process.env.ANTIGRAVITY_APP_DATA_DIR ||
+        process.env.ANTIGRAVITY_CONVERSATION_ID ||
+        process.env.ANTIGRAVITY_AGENTAPI_EXE ||
+        process.env.ANTIGRAVITY_LS_ADDRESS ||
+        process.env.GEMINI_CLI ||
+        process.env.GEMINI_HOME ||
+        process.env.AGY_VERSION) {
+      return 'gemini';
+    }
 
     // Check environment
-    if (process.env.HERMES_CONFIG_DIR) return 'hermes';
-    if (process.env.CLAUDE_HOME) return 'claude';
-    if (process.env.OPENCODE_CONFIG_DIR) return 'opencode';
-    if (process.env.CODEX_HOME) return 'codex';
+    if (process.env.HERMES_CONFIG_DIR || process.env.HERMES_AGENT) return 'hermes';
+    if (process.env.CLAUDE_HOME || process.env.CLAUDE_CODE_ENTRYPOINT || process.env.CLAUDE_AGENT) return 'claude';
+    if (process.env.OPENCODE_CONFIG_DIR || process.env.OPENCODE_HOME) return 'opencode';
+    if (process.env.CODEX_HOME || process.env.CODEX_AGENT) return 'codex';
+    if (process.env.CURSOR_HOME || process.env.CURSOR_AGENT) return 'cursor';
+    if (process.env.ZED_HOME || process.env.ZED_AGENT) return 'zed';
 
     // Check for presence
     try {
@@ -278,13 +297,32 @@ class ScriptAdapter {
   }
 
   detectHarness() {
-    if (this.harness !== 'auto') return this.harness;
+    if (this.harness && this.harness !== 'auto') return this.harness;
+
+    // Check explicit enlighten env vars
+    if (process.env.ENLIGHTEN_CALLER_HARNESS) return process.env.ENLIGHTEN_CALLER_HARNESS;
+    if (process.env.ENLIGHTEN_TARGET_HARNESS) return process.env.ENLIGHTEN_TARGET_HARNESS;
+    if (process.env.ENLIGHTEN_HARNESS) return process.env.ENLIGHTEN_HARNESS;
+
+    // Check Antigravity / Gemini runtime
+    if (process.env.ANTIGRAVITY_AGENT ||
+        process.env.ANTIGRAVITY_APP_DATA_DIR ||
+        process.env.ANTIGRAVITY_CONVERSATION_ID ||
+        process.env.ANTIGRAVITY_AGENTAPI_EXE ||
+        process.env.ANTIGRAVITY_LS_ADDRESS ||
+        process.env.GEMINI_CLI ||
+        process.env.GEMINI_HOME ||
+        process.env.AGY_VERSION) {
+      return 'gemini';
+    }
 
     // Check environment
-    if (process.env.HERMES_CONFIG_DIR) return 'hermes';
-    if (process.env.CLAUDE_HOME) return 'claude';
-    if (process.env.OPENCODE_CONFIG_DIR) return 'opencode';
-    if (process.env.CODEX_HOME) return 'codex';
+    if (process.env.HERMES_CONFIG_DIR || process.env.HERMES_AGENT) return 'hermes';
+    if (process.env.CLAUDE_HOME || process.env.CLAUDE_CODE_ENTRYPOINT || process.env.CLAUDE_AGENT) return 'claude';
+    if (process.env.OPENCODE_CONFIG_DIR || process.env.OPENCODE_HOME) return 'opencode';
+    if (process.env.CODEX_HOME || process.env.CODEX_AGENT) return 'codex';
+    if (process.env.CURSOR_HOME || process.env.CURSOR_AGENT) return 'cursor';
+    if (process.env.ZED_HOME || process.env.ZED_AGENT) return 'zed';
 
     // Check for presence
     try {
@@ -350,6 +388,11 @@ class ScriptAdapter {
 
     // Add harness-specific steps
     const managers = {
+      gemini: {
+        skillInstall: 'enlighten install',
+        skillRemove: 'enlighten uninstall',
+        skillUpdate: 'enlighten install --force'
+      },
       hermes: {
         skillInstall: 'npx ecc plugin add',
         skillRemove: 'npx ecc plugin remove',

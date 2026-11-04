@@ -362,6 +362,74 @@ section { padding-block: var(--section-gap); }
   color: var(--color-ink-2);
 }
 
+/* Hero Badge */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-wash);
+  border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  margin-bottom: var(--space-md);
+}
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* Comparison Table */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-xl);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--color-paper-2);
+}
+.comparison-table th, .comparison-table td {
+  padding: var(--space-md) var(--space-lg);
+  text-align: left;
+  border-bottom: 1px solid var(--color-rule);
+}
+.comparison-table th {
+  background: var(--color-paper-3);
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.comparison-table th.highlight-col, .comparison-table td.highlight-col {
+  background: color-mix(in oklab, var(--color-accent-wash) 55%, var(--color-paper-2));
+}
+.tag-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--color-success);
+  font-weight: 500;
+}
+.tag-cross {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--color-error);
+}
+.tag-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-3);
+  color: var(--color-ink-2);
+}
+
 /* Quick commands panel */
 .commands-panel {
   background: var(--color-paper-2);
@@ -443,8 +511,10 @@ footer .meta {
       <nav>
         <a class="logo" href="#main">Enlighten</a>
         <div class="actions">
-          <a href="#quickstart" class="nav-link">Quick start</a>
+          <a href="#features" class="nav-link">Features</a>
+          <a href="#comparison" class="nav-link">Comparison</a>
           <a href="#platforms" class="nav-link">Platforms</a>
+          <a href="#quickstart" class="nav-link">Quick start</a>
           <a href="https://github.com/Ayan-Jain-737/enlighten-agent-tool" class="btn">GitHub</a>
         </div>
       </nav>
@@ -455,90 +525,169 @@ footer .meta {
     <!-- Hero (Field posture - feature ledger on graphite) -->
     <section class="hero">
       <div class="hero-text">
-        <h1>Install AI agent skills in one command</h1>
-        <p class="lead">Universal installer that reads repository guides first and synchronizes agent skills globally.</p>
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          v1.1 Release · Built-in Skill Discovery &amp; Active Agent Scoping
+        </div>
+        <h1>Search, build &amp; run AI agent skills in one command</h1>
+        <p class="lead">Universal installer that discovers skills across the open registry, compiles real binaries from any GitHub repository, and installs cleanly for your active agent without cluttering unused directories.</p>
         <div class="hero-actions">
           <a href="#quickstart" class="btn btn--primary">Get started</a>
+          <a href="#comparison" class="btn">See comparison</a>
           <a href="https://www.npmjs.com/package/enlighten-agent-tool" class="btn">View on npm</a>
         </div>
       </div>
       <div class="hero-panel">
         <div class="terminal">
           <div class="term-head">
-            <span>enlighten install</span>
-            <span>v1.0.8</span>
+            <span>enlighten find &amp; install</span>
+            <span>v1.1.0</span>
           </div>
           <div class="term-body">
-            <pre><span class="term-prompt">$</span> enlighten install vercel-labs/agent-skills
+            <pre><span class="term-prompt">$</span> enlighten find react
+<span class="term-info">🔍 Discovered Skills &amp; Tools for "react":</span>
+  1. react-best-practices <span class="term-path">(🧠 Agent Skill • 185k installs)</span>
+  2. next-cache-components <span class="term-path">(🧠 Agent Skill • 92k installs)</span>
+
+<span class="term-prompt">$</span> enlighten install vercel-labs/agent-skills
 <span class="term-info">Step 1/3:</span> Checking repository README for installation guide
 <span class="term-info">Step 2/3:</span> Following guide: npx skills add vercel-labs/agent-skills
-<span class="term-info">Step 3/3:</span> Registering skills globally across all agent harnesses
-   <span class="term-success">ok</span> Antigravity / Gemini <span class="term-path">(~/.gemini/skills/)</span>
+<span class="term-info">Step 3/3:</span> Registering skills for active agent (gemini) &amp; global storage
    <span class="term-success">ok</span> Open Agents <span class="term-path">(~/.agents/skills/)</span>
-   <span class="term-success">ok</span> Claude Code <span class="term-path">(~/.claude/skills/)</span>
-   <span class="term-success">ok</span> Hermes <span class="term-path">(~/.hermes/skills/)</span>
-<span class="term-success">Installation complete. Skills immediately available.</span></pre>
+   <span class="term-success">ok</span> Antigravity / Gemini <span class="term-path">(~/.gemini/skills/)</span>
+<span class="term-success">Installation complete. Zero pollution to unused agent folders.</span></pre>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- The 3 Steps -->
-    <section id="workflow">
+    <!-- Features Ledger -->
+    <section id="features">
       <div class="section-title">
-        <h2>Three steps, zero manual configuration</h2>
-        <p>Enlighten reads what repository authors specify instead of running slow, blind clones.</p>
+        <h2>Engineered for real agent autonomy</h2>
+        <p>Enlighten bridges the gap between static prompt skills and executable developer software.</p>
       </div>
       <div class="ledger">
         <div class="ledger-card">
-          <h3>README check first</h3>
-          <p>Fetches the repository guide over HTTP in milliseconds. Discovers author-specified installation instructions before downloading commits.</p>
+          <h3>Universal Discovery</h3>
+          <p>Search open skills.sh packages, curated battle-tested capabilities, and local installed skills in real time. Resilient with offline fallback catalogs.</p>
         </div>
         <div class="ledger-card">
-          <h3>Official guide steps</h3>
-          <p>Executes the author’s official commands (Skills CLI, curl one-liner, or package managers) directly as built and intended.</p>
+          <h3>README-First Engine</h3>
+          <p>Fetches the repository guide over HTTP in milliseconds. Executes the author’s recommended installation steps before attempting heavy clones.</p>
         </div>
         <div class="ledger-card">
-          <h3>Global skill sync</h3>
-          <p>Registers newly installed skills across all agent harnesses automatically. Any tool downloaded is ready in all environments.</p>
+          <h3>Automatic Skill Synthesis</h3>
+          <p>99% of GitHub repos don't have a SKILL.md. Enlighten inspects entry points and synthesizes a full agent skill wrapper automatically.</p>
+        </div>
+        <div class="ledger-card">
+          <h3>Real Code Compilation</h3>
+          <p>Builds Rust, Go, Python, and Node projects. Symlinks executables directly into <code>~/.local/bin/</code> so agents can run tools immediately.</p>
+        </div>
+        <div class="ledger-card">
+          <h3>Active Agent Scoping</h3>
+          <p>Clean filesystem discipline. If you use Antigravity / Gemini, skills install only in <code>.gemini</code> and global storage—never creating ghost folders for Codex or Zed.</p>
+        </div>
+        <div class="ledger-card">
+          <h3>Agent-Native JSON API</h3>
+          <p>Pass <code>--json</code> to any command (find, install, diagnose, list) for clean, machine-readable data designed for AI agent tool calling.</p>
         </div>
       </div>
+    </section>
+
+    <!-- Head-to-Head Comparison Table -->
+    <section id="comparison">
+      <div class="section-title">
+        <h2>How Enlighten compares to traditional skill managers</h2>
+        <p>See why Enlighten is a full tool execution runtime, not just a markdown file downloader.</p>
+      </div>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th>Traditional Skills CLI (<code>npx skills</code>)</th>
+            <th class="highlight-col">Enlighten (<code>enlighten-agent-tool</code>)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Any GitHub Repository</strong></td>
+            <td><span class="tag-cross">✕</span> Fails if not pre-packaged as a skill</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Works on ANY public or local repo</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Repos without <code>SKILL.md</code></strong></td>
+            <td><span class="tag-cross">✕</span> Cannot install</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Auto-synthesizes skill wrapper</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Compiling &amp; Building Code</strong></td>
+            <td><span class="tag-cross">✕</span> None (copies markdown only)</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Runs cargo, go, npm, pip, make</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Binary Tool Exposure</strong></td>
+            <td><span class="tag-cross">✕</span> No binary execution support</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Symlinks binaries to <code>~/.local/bin</code></strong></td>
+          </tr>
+          <tr>
+            <td><strong>Active Agent Directory Scoping</strong></td>
+            <td><span class="tag-cross">✕</span> Dumps into single generic folder</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Scopes to caller agent (AGY, Claude, etc.)</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Built-in Skill Discovery</strong></td>
+            <td><span class="tag-check">✓</span> Remote registry search</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Live registry + Curated + Offline fallback</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Tool Repositories &amp; CLIs</strong></td>
+            <td><span class="tag-cross">✕</span> Prompt skills only</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Discovers both skills &amp; CLI utilities</strong></td>
+          </tr>
+          <tr>
+            <td><strong>Machine-Readable Agent JSON</strong></td>
+            <td><span class="tag-cross">✕</span> Human text output</td>
+            <td class="highlight-col"><span class="tag-check">✓</span> <strong>Structured JSON with <code>--json</code></strong></td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
     <!-- Platform support -->
     <section id="platforms">
       <div class="section-title">
         <h2>Supported agent environments</h2>
-        <p>Enlighten synchronizes skills to global directories recognized by every major AI coding assistant.</p>
+        <p>Enlighten automatically discovers your active environment and isolates skills cleanly.</p>
       </div>
       <table class="harness-table">
         <thead>
           <tr>
             <th>Agent Environment</th>
-            <th>Global Skills Directory</th>
-            <th>Integration Type</th>
+            <th>Skills Directory</th>
+            <th>Scoping &amp; Integration</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><strong>Google Antigravity / Gemini</strong></td>
             <td><code>~/.gemini/skills/</code></td>
-            <td>Progressive disclosure skills</td>
+            <td>Active detection via <code>ANTIGRAVITY_AGENT</code>; zero pollution to other harnesses</td>
           </tr>
           <tr>
             <td><strong>Open Agents</strong></td>
             <td><code>~/.agents/skills/</code></td>
-            <td>Skills CLI and .skill-lock.json</td>
+            <td>Canonical global storage and <code>.skill-lock.json</code> synchronization</td>
           </tr>
           <tr>
             <td><strong>Claude Code</strong></td>
             <td><code>~/.claude/skills/</code></td>
-            <td>Skills and /enlighten command</td>
+            <td>Progressive disclosure skills &amp; <code>~/.claude/commands/enlighten.md</code></td>
           </tr>
           <tr>
             <td><strong>Hermes</strong></td>
             <td><code>~/.hermes/skills/</code></td>
-            <td>Skills and /enlighten command</td>
+            <td>Skills directory &amp; slash command integration</td>
           </tr>
           <tr>
             <td><strong>OpenCode</strong></td>
@@ -547,8 +696,8 @@ footer .meta {
           </tr>
           <tr>
             <td><strong>Codex / Cursor / Zed</strong></td>
-            <td><code>~/.codex/skills/</code>, <code>~/.cursor/skills/</code></td>
-            <td>Global agent skills</td>
+            <td><code>~/.codex/skills/</code>, <code>~/.cursor/skills/</code>, <code>~/.zed/skills/</code></td>
+            <td>Targeted on demand via <code>--agent &lt;name&gt;</code> without creating unused folders</td>
           </tr>
         </tbody>
       </table>
@@ -562,28 +711,28 @@ footer .meta {
       </div>
       <div class="commands-panel">
         <div class="command-row">
-          <code>curl -fsSL https://.../install.sh | bash</code>
-          <span>One-command universal curl installer</span>
-        </div>
-        <div class="command-row">
-          <code>npx skills add Ayan-Jain-737/enlighten-agent-tool -g -y</code>
-          <span>Install via Skills CLI</span>
+          <code>enlighten find &lt;query&gt;</code>
+          <span>Discover skills, packages, and CLI tool repos (e.g. <code>enlighten find react</code>)</span>
         </div>
         <div class="command-row">
           <code>enlighten install &lt;repo-url&gt;</code>
-          <span>Install repository and register skills globally</span>
+          <span>Install repository, compile code, and register skills for active agent</span>
+        </div>
+        <div class="command-row">
+          <code>enlighten install &lt;repo&gt; --agent gemini</code>
+          <span>Explicitly target an agent harness (e.g. gemini, claude, codex)</span>
         </div>
         <div class="command-row">
           <code>enlighten diagnose &lt;repo-url&gt;</code>
-          <span>Analyze repository guide without installing</span>
+          <span>Analyze repository guide and tech stack without installing</span>
         </div>
         <div class="command-row">
           <code>enlighten list-installed</code>
-          <span>Show all managed installations and skills</span>
+          <span>Show all managed installations, binaries, and skills</span>
         </div>
         <div class="command-row">
           <code>enlighten uninstall &lt;id&gt; --force</code>
-          <span>Safely remove repository and unregister skills</span>
+          <span>Safely remove repository, unregister skills, and unlink binaries</span>
         </div>
       </div>
     </section>
@@ -595,11 +744,12 @@ footer .meta {
       <div class="links">
         <a href="https://github.com/Ayan-Jain-737/enlighten-agent-tool">GitHub</a>
         <a href="https://www.npmjs.com/package/enlighten-agent-tool">npm</a>
+        <a href="#comparison">Comparison</a>
         <a href="#quickstart">Quick start</a>
       </div>
     </div>
     <div class="container meta">
-      <span>Version 1.0.8</span>
+      <span>Version 1.1.0</span>
       <span>MIT License</span>
       <span>Maintained by Ayan-Jain-737</span>
     </div>

@@ -17,10 +17,11 @@ const { EnlightenScanner } = require('../skills/enlighten-installer/scripts/scan
 const { ScriptAdapter } = require('../skills/enlighten-installer/scripts/adapt-install');
 const { SkillRegistry } = require('../skills/enlighten-installer/scripts/skill-registry');
 const { ReadmeGuide } = require('../skills/enlighten-installer/scripts/readme-guide');
+const { SkillFinder } = require('../skills/enlighten-installer/scripts/skill-finder');
 
 class EnlightCLI {
   constructor(options = {}) {
-    let pkg = { version: '1.0.8' };
+    let pkg = { version: '1.1.0' };
     try {
       pkg = require('../package.json');
     } catch {}
@@ -35,6 +36,7 @@ class EnlightCLI {
     this.adapter = new ScriptAdapter(options);
     this.skillRegistry = new SkillRegistry({ homedir: this.homedir, dryRun: options.dryRun });
     this.readmeGuide = new ReadmeGuide();
+    this.finder = new SkillFinder({ homedir: this.homedir });
 
     this.ensureDirs();
   }
@@ -336,12 +338,26 @@ class EnlightCLI {
     }
 
     // =========================================================================
-    // STEP 3: Register and synchronize skills globally across all agent harnesses
+    // STEP 3: Register and synchronize skills for the active agent & global storage
     // =========================================================================
-    if (!isJson) console.log(`🌐 Step 3/3: Registering & synchronizing skills globally across all harnesses...`);
+    const callerHarness = options.targetHarness || options.harness || options.agent || this.skillRegistry.detectCallerHarness(options);
+    const isAllHarnesses = Boolean(options.allHarnesses || options.allAgents);
 
-    // 1. Sync skills from Open Agents (~/.agents/skills) across all harnesses (~/.gemini/skills, etc.)
-    const syncedSkills = this.skillRegistry.syncAllGlobalSkills();
+    if (!isJson) {
+      if (callerHarness && !isAllHarnesses) {
+        console.log(`🌐 Step 3/3: Registering skills for active agent (${callerHarness}) & global storage...`);
+      } else if (isAllHarnesses) {
+        console.log(`🌐 Step 3/3: Registering skills across all agent harnesses...`);
+      } else {
+        console.log(`🌐 Step 3/3: Registering skills globally & in detected harnesses...`);
+      }
+    }
+
+    // 1. Sync skills from Open Agents (~/.agents/skills) to the active harness
+    const syncedSkills = this.skillRegistry.syncAllGlobalSkills({
+      targetHarness: callerHarness,
+      allHarnesses: isAllHarnesses
+    });
 
     // 2. If targetDir was cloned, check if it has skills or synthesize a skill wrapper
     const registeredSkillsManifest = [];
@@ -349,7 +365,11 @@ class EnlightCLI {
       const skillsInRepo = this.skillRegistry.discoverSkills(targetDir);
       if (skillsInRepo.length > 0) {
         for (const s of skillsInRepo) {
-          const res = this.skillRegistry.registerSkill(s, { repoUrl: norm.url, allHarnesses: true });
+          const res = this.skillRegistry.registerSkill(s, {
+            repoUrl: norm.url,
+            targetHarness: callerHarness,
+            allHarnesses: isAllHarnesses
+          });
           registeredSkillsManifest.push({
             name: s.name,
             path: s.skillDir,
@@ -358,7 +378,11 @@ class EnlightCLI {
         }
       } else if (!guideFollowed) {
         const gen = this.skillRegistry.generateSkillForRepo(targetDir, { name: norm.repoName, repoUrl: norm.url });
-        const res = this.skillRegistry.registerSkill(gen, { repoUrl: norm.url, allHarnesses: true });
+        const res = this.skillRegistry.registerSkill(gen, {
+          repoUrl: norm.url,
+          targetHarness: callerHarness,
+          allHarnesses: isAllHarnesses
+        });
         registeredSkillsManifest.push({
           name: gen.name,
           path: gen.skillDir,
@@ -368,11 +392,17 @@ class EnlightCLI {
     }
 
     if (!isJson) {
-      console.log(`   ✅ Skills synchronized globally:`);
-      console.log(`      • Antigravity / Gemini (~/.gemini/skills/)`);
-      console.log(`      • Open Agents (~/.agents/skills/)`);
-      console.log(`      • Claude Code (~/.claude/skills/)`);
-      console.log(`      • Hermes (~/.hermes/skills/)`);
+      const allRegistered = new Set();
+      registeredSkillsManifest.forEach(m => m.registeredHarnesses.forEach(h => allRegistered.add(h)));
+      syncedSkills.forEach(s => allRegistered.add(s.harness));
+      if (allRegistered.size === 0) {
+        allRegistered.add('Open Agents (~/.agents/skills/)');
+      }
+
+      console.log(`   ✅ Skills registered:`);
+      for (const h of allRegistered) {
+        console.log(`      • ${h}`);
+      }
     }
 
     // Record in registry
@@ -410,7 +440,11 @@ class EnlightCLI {
       if (registeredSkillsManifest.length > 0) {
         console.log(`   • Skills Discovered & Registered: ${registeredSkillsManifest.length}`);
       }
-      console.log(`   • Global Harnesses Updated: Antigravity, Open Agents, Claude Code, Hermes`);
+      const harnessNames = new Set();
+      registeredSkillsManifest.forEach(m => m.registeredHarnesses.forEach(h => harnessNames.add(h)));
+      syncedSkills.forEach(s => harnessNames.add(s.harness));
+      if (harnessNames.size === 0) harnessNames.add('Open Agents');
+      console.log(`   • Harnesses Updated: ${Array.from(harnessNames).join(', ')}`);
       console.log(`\n💡 The newly installed skills are immediately available to your AI agents!`);
     }
 
@@ -559,6 +593,22 @@ class EnlightCLI {
 
     return diag;
   }
+
+  /**
+   * Search for skills, packages, and tool repositories across registry and curated index
+   */
+  async findSkills(query, options = {}) {
+    const isJson = options.json;
+    const results = await this.finder.search(query, options);
+
+    if (isJson) {
+      console.log(JSON.stringify({ query, count: results.length, results }, null, 2));
+    } else {
+      console.log(this.finder.formatOutput(results, query));
+    }
+
+    return results;
+  }
 }
 
 // CLI Execution
@@ -571,31 +621,56 @@ if (require.main === module) {
   const isJson = args.includes('--json');
   const isForce = args.includes('--force');
   const isDryRun = args.includes('--dry-run');
+  const isAllAgents = args.includes('--all') || args.includes('--all-agents') || args.includes('--all-harnesses');
 
-  const filteredArgs = args.filter(a => !a.startsWith('--'));
+  let targetHarness = null;
+  const filteredArgs = [];
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--agent' || args[i] === '--harness' || args[i] === '--for') {
+      targetHarness = args[i + 1];
+      i++;
+    } else if (args[i].startsWith('--agent=')) {
+      targetHarness = args[i].slice('--agent='.length);
+    } else if (args[i].startsWith('--harness=')) {
+      targetHarness = args[i].slice('--harness='.length);
+    } else if (args[i].startsWith('--for=')) {
+      targetHarness = args[i].slice('--for='.length);
+    } else if (!args[i].startsWith('--')) {
+      filteredArgs.push(args[i]);
+    }
+  }
 
   if (filteredArgs.length === 0 || args.includes('--help') || args.includes('-h') || filteredArgs[0] === 'help') {
     console.log(`
 Enlighten v${cli.version} - Universal AI Agent Repository & Skill Installer
 
 USAGE:
-    enlighten install <repo-url> [--dry-run] [--force] [--json]
+    enlighten find <query> [--json]
+    enlighten install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
     enlighten diagnose <repo-url> [--json]
     enlighten list-installed [--json]
     enlighten uninstall <identifier> [--force] [--dry-run] [--json]
     enlighten --help
 
 COMMANDS:
-    install <url>       Check README for install guide, execute suggested steps to get skills,
-                        and register skills globally across all agent harnesses.
+    find <query>        Discover agent skills, packages, and CLI tool repos (e.g. enlighten find react)
+    install <url>       Check README for install guide, execute suggested steps,
+                        and register skills for the active agent harness and global store.
     diagnose <url>      Check README & repository without installing.
     list-installed      Show all managed installations and registered skills.
-    uninstall <id>      Safely remove a repository and unregister its skills globally.
+    uninstall <id>      Safely remove a repository and unregister its skills.
+
+OPTIONS:
+    --agent <name>      Explicitly target an agent harness (e.g. gemini, claude, codex, zed)
+    --all-agents        Install into all agent harnesses instead of only the active agent
+    --dry-run           Simulate installation without making filesystem changes
+    --force             Reinstall or overwrite existing installation
+    --json              Output results as formatted JSON
 
 WORKFLOW:
     1. Check README     Fetches the README first (no heavy cloning).
     2. Follow Guide     Runs the author's recommended installation command (skills CLI, curl, etc.).
-    3. Global Sync      Registers all skills across Antigravity, Open Agents, Claude Code, Hermes.
+    3. Active & Global  Registers skills in the active agent folder and global store (~/.agents/skills/).
 `);
     process.exit(0);
   }
@@ -605,12 +680,24 @@ WORKFLOW:
 
   (async () => {
     switch (cmd) {
+      case 'find':
+      case 'search':
+        await cli.findSkills(target || '', { json: isJson });
+        break;
+
       case 'install':
         if (!target) {
           console.error('Error: repository URL or shorthand required (e.g., enlighten install owner/repo)');
           process.exit(1);
         }
-        await cli.install(target, { json: isJson, force: isForce, dryRun: isDryRun });
+        await cli.install(target, {
+          json: isJson,
+          force: isForce,
+          dryRun: isDryRun,
+          targetHarness,
+          allAgents: isAllAgents,
+          allHarnesses: isAllAgents
+        });
         break;
 
       case 'diagnose':

@@ -16,6 +16,125 @@ class SkillRegistry {
   }
 
   /**
+   * Normalize an agent/harness identifier to canonical id.
+   */
+  normalizeHarnessId(id) {
+    if (!id || typeof id !== 'string') return null;
+    const clean = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    switch (clean) {
+      case 'gemini':
+      case 'agy':
+      case 'antigravity':
+      case 'antigravity-cli':
+        return 'gemini';
+      case 'claude':
+      case 'claude-code':
+      case 'claudecode':
+        return 'claude';
+      case 'agents':
+      case 'open-agents':
+      case 'global':
+        return 'agents';
+      case 'hermes':
+      case 'hermes-agent':
+        return 'hermes';
+      case 'opencode':
+        return 'opencode';
+      case 'codex':
+        return 'codex';
+      case 'cursor':
+        return 'cursor';
+      case 'zed':
+        return 'zed';
+      default:
+        return clean;
+    }
+  }
+
+  /**
+   * Detect which agent harness called or invoked the skill.
+   */
+  detectCallerHarness(options = {}) {
+    // 1. Explicit options
+    const explicit = options.targetHarness || options.harness || options.agent;
+    if (explicit) return this.normalizeHarnessId(explicit);
+
+    // 2. Explicit environment variables
+    const envExplicit = process.env.ENLIGHTEN_CALLER_HARNESS ||
+                        process.env.ENLIGHTEN_TARGET_HARNESS ||
+                        process.env.ENLIGHTEN_HARNESS ||
+                        process.env.ENLIGHTEN_AGENT;
+    if (envExplicit) return this.normalizeHarnessId(envExplicit);
+
+    // 3. Active Agent runtime detection
+    // Antigravity / Gemini (AGY)
+    if (process.env.ANTIGRAVITY_AGENT ||
+        process.env.ANTIGRAVITY_APP_DATA_DIR ||
+        process.env.ANTIGRAVITY_CONVERSATION_ID ||
+        process.env.ANTIGRAVITY_AGENTAPI_EXE ||
+        process.env.ANTIGRAVITY_LS_ADDRESS ||
+        process.env.GEMINI_CLI ||
+        process.env.GEMINI_HOME ||
+        process.env.AGY_VERSION) {
+      return 'gemini';
+    }
+
+    // Claude Code
+    if (process.env.CLAUDE_CODE_ENTRYPOINT ||
+        process.env.CLAUDE_AGENT ||
+        process.env.CLAUDE_SESSION_ID ||
+        process.env.CLAUDE_HOME) {
+      return 'claude';
+    }
+
+    // Hermes
+    if (process.env.HERMES_CONFIG_DIR || process.env.HERMES_AGENT || process.env.HERMES_HOME) {
+      return 'hermes';
+    }
+
+    // OpenCode
+    if (process.env.OPENCODE_CONFIG_DIR || process.env.OPENCODE_HOME || process.env.OPENCODE_AGENT) {
+      return 'opencode';
+    }
+
+    // Codex
+    if (process.env.CODEX_HOME || process.env.CODEX_AGENT || process.env.CODEX_SESSION_ID) {
+      return 'codex';
+    }
+
+    // Cursor
+    if (process.env.CURSOR_AGENT || process.env.CURSOR_HOME) {
+      return 'cursor';
+    }
+
+    // Zed
+    if (process.env.ZED_AGENT || process.env.ZED_HOME) {
+      return 'zed';
+    }
+
+    // 4. Invocation path inspection (argv, callerScript, __dirname)
+    const candidates = [...process.argv, options.callerScript || '', __dirname].filter(Boolean);
+    for (const item of candidates) {
+      if (item.includes('/.gemini/') || item.includes('\\.gemini\\')) return 'gemini';
+      if (item.includes('/.claude/') || item.includes('\\.claude\\')) return 'claude';
+      if (item.includes('/.hermes/') || item.includes('\\.hermes\\')) return 'hermes';
+      if (item.includes('/.codex/') || item.includes('\\.codex\\')) return 'codex';
+      if (item.includes('/.zed/') || item.includes('\\.zed\\')) return 'zed';
+      if (item.includes('/.cursor/') || item.includes('\\.cursor\\')) return 'cursor';
+      if (item.includes('/opencode/') || item.includes('\\opencode\\')) return 'opencode';
+    }
+
+    // 5. Working directory inspection
+    try {
+      const cwd = process.cwd();
+      if (cwd.includes('/.gemini') || cwd.includes('\\.gemini')) return 'gemini';
+      if (cwd.includes('/.claude') || cwd.includes('\\.claude')) return 'claude';
+    } catch {}
+
+    return null;
+  }
+
+  /**
    * Returns metadata for all supported agent harnesses on the current system.
    */
   getHarnesses() {
@@ -258,13 +377,20 @@ class SkillRegistry {
   }
 
   /**
-   * Register a discovered skill into all active global harness skills directories.
+   * Register a discovered skill into the active agent harness and global storage.
+   * By default, installs ONLY for the caller agent (e.g. AGY -> .gemini) and global (~/.agents),
+   * without creating or modifying folders for unused agents like codex or zed.
    */
   registerSkill(skillInfo, options = {}) {
     const harnesses = this.getHarnesses();
     const registeredHarnesses = [];
 
-    // Canonical location in ~/.agents/skills if available or default
+    // Determine target caller harness
+    const callerHarness = options.targetHarness || options.harness || options.agent || this.detectCallerHarness(options);
+    const normalizedTarget = callerHarness ? this.normalizeHarnessId(callerHarness) : null;
+    const isAllHarnesses = Boolean(options.allHarnesses || options.allAgents);
+
+    // 1. Canonical location in ~/.agents/skills (global store) is always updated
     const agentsDir = path.join(this.homedir, '.agents', 'skills');
     const canonicalDir = path.join(agentsDir, skillInfo.name);
 
@@ -274,14 +400,31 @@ class SkillRegistry {
       }
       this.linkOrCopy(skillInfo.skillDir, canonicalDir);
     }
+    registeredHarnesses.push({
+      harness: 'Open Agents',
+      skillsDir: agentsDir,
+      path: canonicalDir
+    });
 
+    // 2. Register for the caller agent or explicit/detected harnesses only
     for (const harness of harnesses) {
-      // If harness exists or is explicitly requested or is core (gemini, agents, claude)
-      const shouldInstall = harness.detected ||
-                            options.allHarnesses ||
-                            harness.id === 'gemini' ||
-                            harness.id === 'agents' ||
-                            harness.id === 'claude';
+      if (harness.id === 'agents') {
+        // Handled as global canonical above
+        continue;
+      }
+
+      let shouldInstall = false;
+      if (isAllHarnesses) {
+        shouldInstall = true;
+      } else if (normalizedTarget) {
+        // Specific caller agent detected: only install for this agent!
+        shouldInstall = (harness.id === normalizedTarget);
+      } else {
+        // No caller agent detected from runtime/flags:
+        // Only install into harnesses that ALREADY exist on the machine.
+        // Never create new directories for unused agents like codex or zed!
+        shouldInstall = harness.detected;
+      }
 
       if (shouldInstall && harness.skillsDir) {
         const dest = path.join(harness.skillsDir, skillInfo.name);
@@ -398,16 +541,31 @@ ${repoInfo.readmeSummary ? `## Summary from README\n${repoInfo.readmeSummary}\n`
   }
 
   /**
-   * Register command definitions (commands/*.md) to Claude Code and Hermes.
+   * Register command definitions (commands/*.md) to Claude Code and Hermes if applicable.
    */
-  registerCommands(commandsDir) {
+  registerCommands(commandsDir, options = {}) {
     if (!fs.existsSync(commandsDir)) return [];
     const files = fs.readdirSync(commandsDir).filter(f => f.endsWith('.md'));
     const harnesses = this.getHarnesses();
     const installed = [];
 
+    const callerHarness = options.targetHarness || options.harness || options.agent || this.detectCallerHarness(options);
+    const normalizedTarget = callerHarness ? this.normalizeHarnessId(callerHarness) : null;
+    const isAllHarnesses = Boolean(options.allHarnesses || options.allAgents);
+
     for (const harness of harnesses) {
-      if (harness.commandsDir && (harness.detected || harness.id === 'claude' || harness.id === 'hermes')) {
+      if (!harness.commandsDir) continue;
+
+      let shouldInstall = false;
+      if (isAllHarnesses) {
+        shouldInstall = true;
+      } else if (normalizedTarget) {
+        shouldInstall = (harness.id === normalizedTarget);
+      } else {
+        shouldInstall = harness.detected;
+      }
+
+      if (shouldInstall) {
         if (!this.dryRun && !fs.existsSync(harness.commandsDir)) {
           fs.mkdirSync(harness.commandsDir, { recursive: true });
         }
@@ -459,14 +617,18 @@ ${repoInfo.readmeSummary ? `## Summary from README\n${repoInfo.readmeSummary}\n`
   }
 
   /**
-   * Synchronize skills across all detected harnesses (e.g. from ~/.agents/skills to ~/.gemini/skills).
+   * Synchronize skills from global storage (~/.agents/skills) to the active harness or detected harnesses.
    */
-  syncAllGlobalSkills() {
+  syncAllGlobalSkills(options = {}) {
     const harnesses = this.getHarnesses();
     const primarySkillsDir = path.join(this.homedir, '.agents', 'skills');
     const synced = [];
 
     if (!fs.existsSync(primarySkillsDir)) return synced;
+
+    const callerHarness = options.targetHarness || options.harness || options.agent || this.detectCallerHarness(options);
+    const normalizedTarget = callerHarness ? this.normalizeHarnessId(callerHarness) : null;
+    const isAllHarnesses = Boolean(options.allHarnesses || options.allAgents);
 
     try {
       const skillEntries = fs.readdirSync(primarySkillsDir, { withFileTypes: true });
@@ -476,7 +638,18 @@ ${repoInfo.readmeSummary ? `## Summary from README\n${repoInfo.readmeSummary}\n`
         const srcPath = path.join(primarySkillsDir, skillName);
 
         for (const harness of harnesses) {
-          if (harness.skillsDir && harness.id !== 'agents' && (harness.detected || harness.id === 'gemini' || harness.id === 'claude')) {
+          if (!harness.skillsDir || harness.id === 'agents') continue;
+
+          let shouldSync = false;
+          if (isAllHarnesses) {
+            shouldSync = true;
+          } else if (normalizedTarget) {
+            shouldSync = (harness.id === normalizedTarget);
+          } else {
+            shouldSync = harness.detected;
+          }
+
+          if (shouldSync) {
             const destPath = path.join(harness.skillsDir, skillName);
             if (!fs.existsSync(destPath) && !fs.lstatSync(destPath, { throwIfNoEntry: false })) {
               if (!this.dryRun) {

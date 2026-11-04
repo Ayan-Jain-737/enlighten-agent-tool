@@ -66,7 +66,7 @@ assert(discovered.some(s => s.name === 'sub-skill-alpha'), 'Should find sub-skil
 assert(discovered.some(s => s.name === 'inferred-skill'), 'Should infer name for inferred-skill');
 console.log('✅ Test 1 passed: Skill discovery verified\n');
 
-// Test 2: Global Registration across all harnesses
+// Test 2: Global Registration across all harnesses (when allHarnesses: true)
 console.log('Test 2: Registering skills globally across harnesses...');
 for (const skill of discovered) {
   const result = registry.registerSkill(skill, {
@@ -82,6 +82,25 @@ assert(fs.existsSync(path.join(testHarnessHome, '.agents', 'skills', 'sub-skill-
 assert(fs.existsSync(path.join(testHarnessHome, '.claude', 'skills', 'inferred-skill', 'SKILL.md')), 'Should exist in .claude');
 assert(fs.existsSync(path.join(testHarnessHome, '.hermes', 'skills', 'main-root-skill', 'SKILL.md')), 'Should exist in .hermes');
 console.log('✅ Test 2 passed: Global registration verified\n');
+
+// Test 2B: Targeted registration for active agent only (e.g. AGY / Gemini)
+console.log('Test 2B: Registering skill targeting only active agent (gemini)...');
+const isolatedHome = path.join(os.tmpdir(), `test-isolated-harness-${Date.now()}`);
+fs.mkdirSync(path.join(isolatedHome, '.gemini', 'skills'), { recursive: true });
+const isolatedRegistry = new SkillRegistry({ homedir: isolatedHome });
+const singleSkill = discovered[0];
+const targetedResult = isolatedRegistry.registerSkill(singleSkill, {
+  repoUrl: 'https://github.com/test-owner/test-repo.git',
+  targetHarness: 'gemini'
+});
+assert.strictEqual(targetedResult.registeredHarnesses.length, 2, 'Should only register in Open Agents and Gemini');
+assert(fs.existsSync(path.join(isolatedHome, '.gemini', 'skills', singleSkill.name, 'SKILL.md')), 'Should exist in .gemini');
+assert(fs.existsSync(path.join(isolatedHome, '.agents', 'skills', singleSkill.name, 'SKILL.md')), 'Should exist in .agents');
+assert(!fs.existsSync(path.join(isolatedHome, '.codex')), 'Must NOT create .codex');
+assert(!fs.existsSync(path.join(isolatedHome, '.zed')), 'Must NOT create .zed');
+assert(!fs.existsSync(path.join(isolatedHome, '.claude')), 'Must NOT create .claude');
+fs.rmSync(isolatedHome, { recursive: true, force: true });
+console.log('✅ Test 2B passed: Targeted registration for active agent only verified\n');
 
 // Test 3: Skill lockfile update
 console.log('Test 3: Checking .skill-lock.json...');

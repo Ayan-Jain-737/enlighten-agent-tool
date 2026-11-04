@@ -13,20 +13,36 @@
 
 ## Universal GitHub Repository & Skill Installer for AI Agents
 
-**Enlighten** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in the skills folder, and when an agent uses the skill to download/install any repository, it **automatically discovers and registers all skills in global skills folders** or executes whatever that repository suggests.
+**Enlighten** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in your active agent's skills folder, discovers community skills across the open registry, and turns **any GitHub repository** into an immediately executable tool for your agent—compiling binaries, synthesizing skill wrappers, and scoping changes cleanly to your active agent.
 
 <div align="center">
 
-| ✅ Feature | 🔧 Platform Support | 🌐 Languages & Managers |
-|------------|---------------------|--------------------------|
-| 1-Command Install | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
-| Auto Skill Registration | **Open Agents** (`~/.agents/skills/`) | pip, uv, poetry, pipenv |
-| Auto-Synthesis for Tools | **Claude Code** (`~/.claude/skills/`) | cargo (Rust) |
-| Multi-Harness Sync | **Hermes** (`~/.hermes/skills/`) | go build, go install |
-| Binary Linking (`~/.local/bin`) | **OpenCode** (`~/.config/opencode/`) | gradle, maven |
-| Safe Uninstall & Rollback | **Codex**, **Cursor**, **Zed** | cmake, make |
+| ✅ Core Capabilities | 🔧 Platform Support | 🌐 Build & Package Managers |
+|----------------------|---------------------|-----------------------------|
+| **Built-in Skill Discovery** (`enlighten find`) | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
+| **Active-Agent Scoping** (Zero ghost folders) | **Open Agents** (`~/.agents/skills/`) | pip, uv, poetry, pipenv |
+| **Auto-Synthesis for Repos without SKILL.md** | **Claude Code** (`~/.claude/skills/`) | cargo (Rust compilation) |
+| **README-First Intelligence** | **Hermes** (`~/.hermes/skills/`) | go build, go install |
+| **Executable Binary Symlinks** (`~/.local/bin`) | **OpenCode** (`~/.config/opencode/`) | gradle, maven |
+| **Full Lifecycle & Safe Rollback** | **Codex**, **Cursor**, **Zed** | cmake, make |
 
 </div>
+
+---
+
+## 🆚 Head-to-Head: Enlighten vs Traditional `npx skills`
+
+| Capability | Traditional Skills CLI (`npx skills`) | Enlighten (`enlighten-agent-tool`) |
+| :--- | :--- | :--- |
+| **Any GitHub Repository** | ❌ Fails if not pre-packaged as a skill | ✅ **Works on ANY public or local repo** |
+| **Repos without `SKILL.md`** | ❌ Cannot install | ✅ **Auto-synthesizes skill wrapper** |
+| **Compiling & Building Code** | ❌ None (copies markdown only) | ✅ **Runs cargo, go, npm, pip, make** |
+| **Binary Tool Exposure** | ❌ No binary execution support | ✅ **Symlinks binaries to `~/.local/bin`** |
+| **Active Agent Directory Scoping** | ❌ Dumps into single generic folder | ✅ **Scopes to caller agent (AGY, Claude, etc.)** |
+| **Zero Clutter Discipline** | ❌ May leave unused agent folders | ✅ **Never creates folders for unused agents** |
+| **Skill Discovery** | ✅ Remote registry search | ✅ **Live registry + Curated + Offline fallback** |
+| **Tool Repositories & CLIs** | ❌ Prompt skills only | ✅ **Discovers both skills & CLI utilities** |
+| **Machine-Readable Agent JSON** | ❌ Plain terminal text | ✅ **Structured JSON with `--json`** |
 
 ---
 
@@ -58,8 +74,8 @@ cd enlighten-agent-tool
 
 ### What Happens on Installation:
 - ✅ Links the `enlighten` executable directly to `~/.local/bin/enlighten` (in standard system PATH).
-- ✅ Registers the `enlighten`, `enlighten-installer`, and `enlighten-uninstaller` skills into all agent skills directories (`~/.gemini/skills/`, `~/.agents/skills/`, `~/.claude/skills/`, `~/.hermes/skills/`, etc.).
-- ✅ Installs slash command `/enlighten` in Claude Code and Hermes.
+- ✅ Registers the `enlighten`, `enlighten-installer`, and `enlighten-uninstaller` skills into your active agent folder (e.g., `~/.gemini/skills/`) and global canonical storage (`~/.agents/skills/`), avoiding unwanted folders for other unused agents.
+- ✅ Installs slash command `/enlighten` for supported agents (Claude Code, Hermes).
 - ✅ Updates `~/.agents/.skill-lock.json`.
 
 ---
@@ -67,11 +83,19 @@ cd enlighten-agent-tool
 ## ⚡ Quick Start
 
 ```bash
-# Install any GitHub repository (skills are automatically registered globally!)
+# 1. Discover skills & CLI tools across the open ecosystem
+enlighten find react
+enlighten find testing
+enlighten find --json
+
+# 2. Install any GitHub repository (cleanly scoped to active agent & global store)
 enlighten install vercel-labs/agent-skills
 
 # Install by full URL
 enlighten install https://github.com/affaan-m/ECC
+
+# Explicitly target a specific agent harness
+enlighten install https://github.com/user/repo --agent gemini
 
 # Preview installation without making changes (dry-run)
 enlighten install https://github.com/user/repo --dry-run
@@ -79,29 +103,31 @@ enlighten install https://github.com/user/repo --dry-run
 # Output machine-readable JSON for agent consumption
 enlighten install https://github.com/user/repo --json
 
-# Diagnose repository before installing
+# 3. Diagnose repository before installing
 enlighten diagnose https://github.com/user/repo
 
-# List all managed repositories and registered skills
+# 4. List all managed repositories, binaries, and registered skills
 enlighten list-installed
 
-# Safely remove a repository and unregister its skills
+# 5. Safely remove a repository, unregister skills, and unlink binaries
 enlighten uninstall <identifier> --force
 ```
 
 ### Using Inside Agent Conversations
 Any AI agent that has loaded the `enlighten` skill can run:
 ```bash
+/enlighten find react
 /enlighten install https://github.com/user/repo
 ```
 or execute via the terminal tool:
 ```bash
+enlighten find <query>
 enlighten install <repo-url>
 ```
 
 ---
 
-## 🧠 How Auto-Registration Works
+## 🧠 How Auto-Registration & Active Scoping Works
 
 When an agent or developer runs `enlighten install <repo-url>`:
 
@@ -121,8 +147,8 @@ When an agent or developer runs `enlighten install <repo-url>`:
        YES  │                             │ NO
 ┌───────────▼──────────────────┐  ┌───────▼──────────────────────┐
 │ Register Discovered Skills   │  │ Auto-Synthesize Skill        │
-│ Link into ~/.gemini/skills/, │  │ Generate SKILL.md wrapper for│
-│ ~/.agents/skills/, etc.      │  │ the newly installed tool     │
+│ Link into ~/.agents/skills/  │  │ Generate SKILL.md wrapper for│
+│ & active agent (~/.gemini/)  │  │ the newly installed tool     │
 └───────────┬──────────────────┘  └───────┬──────────────────────┘
             └──────────────┬──────────────┘
                            │
@@ -133,9 +159,10 @@ When an agent or developer runs `enlighten install <repo-url>`:
 └──────────────────────────┬─────────────────────────────┘
                            │
 ┌──────────────────────────▼─────────────────────────────┐
-│ 4. Update Registry & Lockfiles                         │
-│    Recorded in ~/.enlighten/cache/installed.json       │
-│    Recorded in ~/.agents/.skill-lock.json              │
+│ 4. Active-Agent Scoped Registration                    │
+│    • In AGY: registers to ~/.gemini/skills/ + global   │
+│    • Zero ghost directories for Codex or Zed           │
+│    • Updates ~/.agents/.skill-lock.json                │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -145,26 +172,28 @@ When an agent or developer runs `enlighten install <repo-url>`:
 
 | Command | Description |
 |---------|-------------|
-| `enlighten install <url>` | Clone repo, register skills globally, run suggested build steps |
-| `enlighten diagnose <url>` | Analyze repository without installing (languages, frameworks, skills) |
-| `enlighten list-installed` | Show all managed installations and their registered skills |
-| `enlighten uninstall <id> --force` | Safe removal of repository, binaries, and registered skills |
+| `enlighten find <query>` | Discover agent skills, packages, and CLI tool repos (e.g., `enlighten find react`) |
+| `enlighten install <url>` | Clone repo, compile binaries, register skills for active agent & global store |
+| `enlighten install <url> --agent <name>` | Explicitly target an agent harness (e.g. `gemini`, `claude`, `codex`) |
+| `enlighten diagnose <url>` | Analyze repository without installing (README guide, languages, frameworks, skills) |
+| `enlighten list-installed` | Show all managed installations, exposed binaries, and registered skills |
+| `enlighten uninstall <id> --force` | Safe removal of repository, binaries (`~/.local/bin`), and registered skills |
 | `enlighten --help` | Show command line help and options |
 
 ---
 
-## 🌐 Supported Platforms & Global Skill Locations
+## 🌐 Supported Platforms & Active Directory Scoping
 
-| Agent Framework | Global Skills Directory | Slash Commands |
-|-----------------|-------------------------|----------------|
-| **Antigravity / Gemini** | `~/.gemini/skills/` | Automatic skill progressive disclosure |
-| **Open Agents** | `~/.agents/skills/` & `.skill-lock.json` | `npx skills` compatible |
-| **Claude Code** | `~/.claude/skills/` | `~/.claude/commands/enlighten.md` (`/enlighten`) |
-| **Hermes** | `~/.hermes/skills/` | `~/.hermes/commands/enlighten.md` (`/enlighten`) |
+| Agent Framework | Skills Directory | Scoping & Integration Behavior |
+|-----------------|------------------|--------------------------------|
+| **Antigravity / Gemini** | `~/.gemini/skills/` | Automatic runtime detection (`ANTIGRAVITY_AGENT`); zero pollution to unused agents |
+| **Open Agents** | `~/.agents/skills/` & `.skill-lock.json` | Canonical global store (`npx skills` compatible) |
+| **Claude Code** | `~/.claude/skills/` | Skills directory & `~/.claude/commands/enlighten.md` (`/enlighten`) |
+| **Hermes** | `~/.hermes/skills/` | Skills directory & `~/.hermes/commands/enlighten.md` (`/enlighten`) |
 | **OpenCode** | `~/.config/opencode/skills/` | Config plugin / skill directory |
-| **Codex** | `~/.codex/skills/` | Global skills directory |
-| **Cursor** | `~/.cursor/skills/` | Workspace and global skills |
-| **Zed** | `~/.zed/skills/` | Global skills |
+| **Codex** | `~/.codex/skills/` | Targeted on demand (`--agent codex`) |
+| **Cursor** | `~/.cursor/skills/` | Targeted on demand (`--agent cursor`) |
+| **Zed** | `~/.zed/skills/` | Targeted on demand (`--agent zed`) |
 
 ---
 
@@ -173,17 +202,19 @@ When an agent or developer runs `enlighten install <repo-url>`:
 ```
 enlighten-agent-tool/
 ├── bin/
-│   └── enlighten                    # CLI executable (full lifecycle engine)
+│   └── enlighten                    # CLI executable (find, install, diagnose, list, uninstall)
 ├── skills/
 │   ├── enlighten/                   # Primary agent skill definition
 │   │   ├── SKILL.md
 │   │   └── scripts/dispatch.js      # Resilient CLI dispatcher
-│   ├── enlighten-installer/         # Scanner, adapter & skill registry engine
+│   ├── enlighten-installer/         # Scanner, adapter, finder & skill registry engine
 │   │   ├── SKILL.md
 │   │   └── scripts/
 │   │       ├── scan-repo.js         # Deep repo & skill scanner
-│   │       ├── skill-registry.js    # Multi-harness registration manager
-│   │       └── adapt-install.js     # OS & harness command adapter
+│   │       ├── skill-finder.js      # Skill & CLI tool discovery engine
+│   │       ├── skill-registry.js    # Multi-harness active-scoped registration manager
+│   │       ├── adapt-install.js     # OS & harness command adapter
+│   │       └── readme-guide.js      # README-first instruction parser
 │   └── enlighten-uninstaller/       # Safe removal skill
 │       └── SKILL.md
 ├── commands/
@@ -192,6 +223,14 @@ enlighten-agent-tool/
 │   ├── install.sh                   # Universal 1-command curl installer
 │   ├── install.js                   # Node.js self-registration script
 │   └── postinstall.js               # NPM postinstall hook
+├── tests/
+│   ├── test-scanner.js              # Scanner unit tests
+│   ├── test-skills.js               # Multi-harness skill registration tests
+│   ├── test-finder.js               # SkillFinder & discovery engine tests
+│   └── test-lifecycle.js            # End-to-end install/uninstall lifecycle tests
+├── package.json
+└── README.md
+```
 ├── tests/
 │   ├── test-scanner.js              # Scanner unit tests
 │   ├── test-skills.js               # Multi-harness skill registration tests

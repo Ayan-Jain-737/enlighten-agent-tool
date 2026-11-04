@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-11-04
+
+### Added
+- 🔍 **Skill & CLI Tool Discovery Engine** (`enlighten find <query>`):
+  - Real-time search across `skills.sh` open agent skills registry.
+  - Built-in curated index of top-tier skills, packages, and CLI tool repositories (React, Next.js, Playwright, Vitest, Ripgrep, Biome, Lazygit, Ruff).
+  - Offline resilience with local cached fallbacks.
+  - Local installed detection: identifies whether found skills are already installed in `~/.agents/.skill-lock.json`.
+  - Machine-readable `--json` envelope for programmatic agent tool calling.
+- 🎯 **Active-Agent Scoping & Filesystem Discipline**:
+  - Automatically detects the active agent harness (e.g. Antigravity / Gemini via `ANTIGRAVITY_AGENT`, Claude Code, Hermes).
+  - Installs skills only for the calling agent (e.g., `~/.gemini/skills/`) and canonical global storage (`~/.agents/skills/`).
+  - **Zero Ghost Directory Pollution**: No longer creates unused directories for Codex, Zed, Cursor, etc. when running in AGY.
+  - Support for explicit target flags: `--agent <name>` (or `--harness <name>`) and opt-in `--all-agents`.
+- 📊 **Head-to-Head Comparison Matrix**:
+  - Full architectural comparison in README and website between Enlighten and traditional `npx skills` / `find-skills`.
+- 🌐 **Website Redesign (`assets/index.html`)**:
+  - Added discovery showcase, comparison matrix, active-agent terminal walkthrough, and command ledger.
+- 🧪 **Discovery Unit Tests (`tests/test-finder.js`)**:
+  - Comprehensive test suite for search, keyword relevance scoring, CLI tool discovery, and installed status detection.
+
+---
+
 ## [1.0.0] - 2024-11-03
 
 ### Added

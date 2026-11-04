@@ -75,12 +75,12 @@ Target Repository
       └── NO ─────────────► Synthesize Skill ─┘
                                    │
                                    ▼
-             Canonical Link: ~/.agents/skills/<skill-name>
+             Canonical Global Link: ~/.agents/skills/<skill-name>
                                    │
-       ┌───────────────────────────┼───────────────────────────┐
-       ▼                           ▼                           ▼
-~/.gemini/skills/           ~/.claude/skills/           ~/.hermes/skills/
-(Antigravity)                (Claude Code)                   (Hermes)
+                                   ▼
+              Caller / Active Agent Skill Directory Only
+              (e.g., ~/.gemini/skills/ when called in AGY)
+              *Avoids creating directories for unused agents*
 ```
 
 ## Global Skill Locations

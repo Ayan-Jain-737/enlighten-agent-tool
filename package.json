@@ -1,6 +1,6 @@
 {
   "name": "enlighten-agent-tool",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Universal GitHub repository and skill installer for AI agent harnesses",
   "main": "index.js",
   "keywords": [
@@ -34,7 +34,8 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "install": "node scripts/postinstall.js",
-    "test": "node tests/test-scanner.js && node tests/test-skills.js && node tests/test-lifecycle.js",
+    "test": "node tests/test-scanner.js && node tests/test-skills.js && node tests/test-finder.js && node tests/test-lifecycle.js",
+    "find": "node bin/enlighten find",
     "diagnose": "node bin/enlighten diagnose",
     "help": "node bin/enlighten help"
   },

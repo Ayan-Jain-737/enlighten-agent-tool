@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
  * enlighten - Universal GitHub Repository & Skill Installer for AI Agent Harnesses
- * Full lifecycle: install -> diagnose -> list -> uninstall
- * Auto-registers skills across Antigravity, Open Agents, Claude Code, Hermes, OpenCode, Codex, Cursor
+ *
+ * Workflow:
+ *  Step 1: Check repository's README for the official installation guide (no heavy clone!)
+ *  Step 2: Follow what that repository suggests (skills CLI, curl installer, package manager, or build script)
+ *  Step 3: Register and synchronize skills globally across all agent harnesses (Antigravity, Open Agents, Claude, Hermes, etc.)
  */
 
 const fs = require('fs');
@@ -13,6 +16,7 @@ const { execSync } = require('child_process');
 const { EnlightenScanner } = require('../skills/enlighten-installer/scripts/scan-repo');
 const { ScriptAdapter } = require('../skills/enlighten-installer/scripts/adapt-install');
 const { SkillRegistry } = require('../skills/enlighten-installer/scripts/skill-registry');
+const { ReadmeGuide } = require('../skills/enlighten-installer/scripts/readme-guide');
 
 class EnlightCLI {
   constructor(options = {}) {
@@ -30,6 +34,7 @@ class EnlightCLI {
     this.scanner = new EnlightenScanner({ dryRun: options.dryRun });
     this.adapter = new ScriptAdapter(options);
     this.skillRegistry = new SkillRegistry({ homedir: this.homedir, dryRun: options.dryRun });
+    this.readmeGuide = new ReadmeGuide();
 
     this.ensureDirs();
   }
@@ -54,7 +59,6 @@ class EnlightCLI {
    */
   normalizeRepoUrl(input) {
     let clean = input.trim();
-    // Shorthand e.g. vercel-labs/agent-skills
     if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(clean)) {
       clean = `https://github.com/${clean}.git`;
     } else if (clean.startsWith('github.com/')) {
@@ -99,9 +103,33 @@ class EnlightCLI {
     } catch {}
   }
 
-  /**
-   * Expose discovered binaries to ~/.local/bin
-   */
+  ensureClone(norm, targetDir, options = {}) {
+    if (options.dryRun) return true;
+    if (fs.existsSync(norm.url)) {
+      this.skillRegistry.linkOrCopy(path.resolve(norm.url), targetDir);
+      return true;
+    }
+    if (fs.existsSync(targetDir)) {
+      if (options.force) {
+        fs.rmSync(targetDir, { recursive: true, force: true });
+      } else {
+        return true;
+      }
+    }
+    const parent = path.dirname(targetDir);
+    if (!fs.existsSync(parent)) fs.mkdirSync(parent, { recursive: true });
+
+    try {
+      execSync(`git clone --depth 1 "${norm.url}" "${targetDir}"`, {
+        stdio: 'pipe',
+        timeout: 120000
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   exposeBinaries(targetDir, binaries) {
     const localBin = path.join(this.homedir, '.local', 'bin');
     if (!fs.existsSync(localBin)) {
@@ -111,7 +139,6 @@ class EnlightCLI {
     }
 
     const exposed = [];
-    // 1. package.json bin
     const pkgPath = path.join(targetDir, 'package.json');
     if (fs.existsSync(pkgPath)) {
       try {
@@ -145,28 +172,9 @@ class EnlightCLI {
       } catch {}
     }
 
-    // 2. Cargo target/release binaries
-    const cargoRelease = path.join(targetDir, 'target', 'release');
-    if (fs.existsSync(cargoRelease) && binaries) {
-      for (const bin of binaries) {
-        const binSrc = path.join(cargoRelease, bin);
-        const binDest = path.join(localBin, bin);
-        if (fs.existsSync(binSrc)) {
-          try {
-            if (fs.existsSync(binDest)) fs.rmSync(binDest, { force: true });
-            fs.symlinkSync(binSrc, binDest);
-            exposed.push(bin);
-          } catch {}
-        }
-      }
-    }
-
     return exposed;
   }
 
-  /**
-   * Execute package manager install and build steps as suggested by the repo
-   */
   executeRepoSuggestions(targetDir, diagnostics, options = {}) {
     if (options.dryRun || options.skipBuild) {
       return { executed: false, commands: [], reason: 'dry_run or skip_build' };
@@ -176,86 +184,49 @@ class EnlightCLI {
     const method = diagnostics.detected?.installMethod;
 
     try {
-      // Node.js projects
       if (['npm', 'yarn', 'pnpm', 'bun'].includes(method) || fs.existsSync(path.join(targetDir, 'package.json'))) {
         let cmd = 'npm install --prefer-offline --no-audit --no-fund';
-        if (fs.existsSync(path.join(targetDir, 'pnpm-lock.yaml'))) {
-          cmd = 'pnpm install --prefer-offline';
-        } else if (fs.existsSync(path.join(targetDir, 'yarn.lock'))) {
-          cmd = 'yarn install';
-        } else if (fs.existsSync(path.join(targetDir, 'bun.lockb'))) {
-          cmd = 'bun install';
-        }
+        if (fs.existsSync(path.join(targetDir, 'pnpm-lock.yaml'))) cmd = 'pnpm install --prefer-offline';
+        else if (fs.existsSync(path.join(targetDir, 'yarn.lock'))) cmd = 'yarn install';
+        else if (fs.existsSync(path.join(targetDir, 'bun.lockb'))) cmd = 'bun install';
 
         try {
           execSync(cmd, { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
           commandsRun.push(cmd);
-        } catch (e) {
-          // If preferred manager not found, fallback to npm
+        } catch {
           if (!cmd.startsWith('npm')) {
             try {
-              execSync('npm install --prefer-offline --no-audit --no-fund', {
-                cwd: targetDir,
-                stdio: 'pipe',
-                timeout: 120000
-              });
+              execSync('npm install --prefer-offline --no-audit --no-fund', { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
               commandsRun.push('npm install');
             } catch {}
           }
         }
-
-        // Build step if defined
-        try {
-          const pkg = JSON.parse(fs.readFileSync(path.join(targetDir, 'package.json'), 'utf8'));
-          if (pkg.scripts && pkg.scripts.build && !options.skipScripts) {
-            execSync('npm run build', { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
-            commandsRun.push('npm run build');
-          }
-        } catch {}
       }
 
-      // Python projects
-      if (['pip', 'uv'].includes(method) || fs.existsSync(path.join(targetDir, 'requirements.txt')) || fs.existsSync(path.join(targetDir, 'pyproject.toml'))) {
+      if (['pip', 'uv'].includes(method) || fs.existsSync(path.join(targetDir, 'requirements.txt'))) {
         if (fs.existsSync(path.join(targetDir, 'requirements.txt'))) {
           try {
             execSync('pip install --no-cache-dir -r requirements.txt', { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
             commandsRun.push('pip install -r requirements.txt');
           } catch {}
         }
-        if (fs.existsSync(path.join(targetDir, 'setup.py')) || fs.existsSync(path.join(targetDir, 'pyproject.toml'))) {
-          try {
-            execSync('pip install -e .', { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
-            commandsRun.push('pip install -e .');
-          } catch {}
-        }
       }
 
-      // Rust projects
       if (method === 'cargo' || fs.existsSync(path.join(targetDir, 'Cargo.toml'))) {
         try {
           execSync('cargo build --release', { cwd: targetDir, stdio: 'pipe', timeout: 180000 });
           commandsRun.push('cargo build --release');
         } catch {}
       }
-
-      // Go projects
-      if (method === 'go' || fs.existsSync(path.join(targetDir, 'go.mod'))) {
-        try {
-          execSync('go build ./...', { cwd: targetDir, stdio: 'pipe', timeout: 120000 });
-          commandsRun.push('go build ./...');
-        } catch {}
-      }
-    } catch (e) {
-      // Non-fatal: installation can still succeed with skills registered
-    }
+    } catch {}
 
     return { executed: true, commands: commandsRun };
   }
 
   /**
-   * Main install method
+   * Main install method - README-First Approach
    */
-  install(repoInput, options = {}) {
+  async install(repoInput, options = {}) {
     const isJson = options.json;
     const norm = this.normalizeRepoUrl(repoInput);
 
@@ -265,10 +236,10 @@ class EnlightCLI {
       console.log(`🆔 Identifier: ${norm.identifier}\n`);
     }
 
-    // Step 1: Check existing
+    // Check existing
     const existing = this.getInstalled().find(i => i.identifier === norm.identifier);
     if (existing && !options.force && !options.dryRun) {
-      const msg = `Repository already installed at ${existing.install_dir}. Use --force to reinstall.`;
+      const msg = `Repository already installed at ${existing.install_dir || existing.repo_url}. Use --force to reinstall.`;
       if (isJson) {
         console.log(JSON.stringify({ status: 'already_installed', identifier: norm.identifier, install_dir: existing.install_dir }, null, 2));
       } else {
@@ -277,108 +248,139 @@ class EnlightCLI {
       return { status: 'already_installed', identifier: norm.identifier, install_dir: existing.install_dir };
     }
 
-    // Step 2: Download or Clone
-    const targetDir = path.join(this.reposDir, norm.owner, norm.repoName);
-    if (!options.dryRun) {
-      if (!isJson) console.log(`⏳ Step 1/4: Cloning repository into ${targetDir}...`);
-      if (fs.existsSync(norm.url)) {
-        // Local directory
-        this.skillRegistry.linkOrCopy(path.resolve(norm.url), targetDir);
-      } else {
-        if (fs.existsSync(targetDir)) {
-          fs.rmSync(targetDir, { recursive: true, force: true });
-        }
-        const parent = path.dirname(targetDir);
-        if (!fs.existsSync(parent)) fs.mkdirSync(parent, { recursive: true });
+    // =========================================================================
+    // STEP 1: Check repository's README first for installation guide
+    // =========================================================================
+    if (!isJson) console.log(`📖 Step 1/3: Checking repository README for installation guide...`);
+    const readmeData = await this.readmeGuide.fetchReadme(norm.url);
+    const guide = readmeData
+      ? this.readmeGuide.parseInstallGuide(readmeData.content, norm.url)
+      : { hasGuide: false, suggestions: [] };
 
-        try {
-          execSync(`git clone --depth 1 "${norm.url}" "${targetDir}"`, {
-            stdio: 'pipe',
-            timeout: 120000
-          });
-        } catch (e) {
-          const errMsg = `Failed to clone repository: ${e.message}`;
-          if (isJson) {
-            console.log(JSON.stringify({ status: 'error', error: errMsg }, null, 2));
-          } else {
-            console.error(`❌ ${errMsg}`);
+    let executedCommand = null;
+    let guideFollowed = false;
+    const targetDir = path.join(this.reposDir, norm.owner, norm.repoName);
+
+    // =========================================================================
+    // STEP 2: Follow what the repository suggests!
+    // =========================================================================
+    if (!isJson) console.log(`⚡ Step 2/3: Following repository's suggested installation steps...`);
+
+    if (guide.hasGuide && guide.primarySuggestion && !options.skipGuide) {
+      const suggestion = guide.primarySuggestion;
+      if (!isJson) {
+        console.log(`   💡 Found official guide step: "${suggestion.command}"`);
+        console.log(`      Purpose: ${suggestion.description}`);
+      }
+
+      if (options.dryRun) {
+        if (!isJson) console.log(`   ⚠️ DRY RUN: Would execute "${suggestion.command}"`);
+        executedCommand = suggestion.command;
+        guideFollowed = true;
+      } else {
+        // Option A: Skills CLI install (e.g. npx skills add ...)
+        if (suggestion.type === 'skills_cli') {
+          let cmd = suggestion.command;
+          if (!cmd.includes('-y')) cmd += ' -y';
+          if (!cmd.includes('-g') && !cmd.includes('--global')) cmd += ' -g';
+          try {
+            if (!isJson) console.log(`   🚀 Running: ${cmd}`);
+            execSync(cmd, { stdio: 'inherit', timeout: 180000 });
+            executedCommand = cmd;
+            guideFollowed = true;
+          } catch (e) {
+            if (!isJson) console.log(`   ⚠️ Skills CLI notice: ${e.message}`);
           }
-          return { status: 'error', error: errMsg };
+        }
+        // Option B: One-liner script installer (curl | bash) or global package install
+        else if (['curl_sh', 'npm_global', 'pip', 'cargo'].includes(suggestion.type)) {
+          try {
+            if (!isJson) console.log(`   🚀 Running: ${suggestion.command}`);
+            execSync(suggestion.command, { stdio: 'inherit', timeout: 180000 });
+            executedCommand = suggestion.command;
+            guideFollowed = true;
+          } catch (e) {
+            if (!isJson) console.log(`   ⚠️ Command notice: ${e.message}`);
+          }
+        }
+        // Option C: Local script execution (e.g. ./install.sh)
+        else if (suggestion.type === 'local_script') {
+          this.ensureClone(norm, targetDir, options);
+          try {
+            if (!isJson) console.log(`   🚀 Running: ${suggestion.command} in ${targetDir}`);
+            execSync(suggestion.command, { cwd: targetDir, stdio: 'inherit', timeout: 180000 });
+            executedCommand = suggestion.command;
+            guideFollowed = true;
+          } catch (e) {
+            if (!isJson) console.log(`   ⚠️ Local script notice: ${e.message}`);
+          }
         }
       }
     }
 
-    // Step 3: Scan repository
-    if (!isJson) console.log(`🔍 Step 2/4: Scanning repository & detecting skills...`);
-    const scanDir = options.dryRun && !fs.existsSync(targetDir) ? '/tmp' : targetDir;
-    const diagnostics = this.scanner.scanRepo(scanDir);
+    // Fallback if no guide command executed (or local repo)
+    if (!guideFollowed) {
+      if (!isJson) console.log(`   ℹ️ No direct installer command in README; checking repository files...`);
+      const cloned = this.ensureClone(norm, targetDir, options);
+      if (cloned && fs.existsSync(targetDir)) {
+        const diagnostics = this.scanner.scanRepo(targetDir);
+        this.executeRepoSuggestions(targetDir, diagnostics, options);
+        this.exposeBinaries(targetDir, diagnostics.suggestions?.binaries);
+      }
+    }
+
+    // =========================================================================
+    // STEP 3: Register and synchronize skills globally across all agent harnesses
+    // =========================================================================
+    if (!isJson) console.log(`🌐 Step 3/3: Registering & synchronizing skills globally across all harnesses...`);
+
+    // 1. Sync skills from Open Agents (~/.agents/skills) across all harnesses (~/.gemini/skills, etc.)
+    const syncedSkills = this.skillRegistry.syncAllGlobalSkills();
+
+    // 2. If targetDir was cloned, check if it has skills or synthesize a skill wrapper
+    const registeredSkillsManifest = [];
+    if (fs.existsSync(targetDir)) {
+      const skillsInRepo = this.skillRegistry.discoverSkills(targetDir);
+      if (skillsInRepo.length > 0) {
+        for (const s of skillsInRepo) {
+          const res = this.skillRegistry.registerSkill(s, { repoUrl: norm.url, allHarnesses: true });
+          registeredSkillsManifest.push({
+            name: s.name,
+            path: s.skillDir,
+            registeredHarnesses: res.registeredHarnesses.map(h => h.harness)
+          });
+        }
+      } else if (!guideFollowed) {
+        const gen = this.skillRegistry.generateSkillForRepo(targetDir, { name: norm.repoName, repoUrl: norm.url });
+        const res = this.skillRegistry.registerSkill(gen, { repoUrl: norm.url, allHarnesses: true });
+        registeredSkillsManifest.push({
+          name: gen.name,
+          path: gen.skillDir,
+          registeredHarnesses: res.registeredHarnesses.map(h => h.harness)
+        });
+      }
+    }
 
     if (!isJson) {
-      console.log(`   • Language: ${diagnostics.detected?.language || 'unknown'}`);
-      console.log(`   • Framework: ${diagnostics.detected?.framework || 'generic'}`);
-      console.log(`   • Profile: ${diagnostics.profile?.recommended || 'developer'}`);
+      console.log(`   ✅ Skills synchronized globally:`);
+      console.log(`      • Antigravity / Gemini (~/.gemini/skills/)`);
+      console.log(`      • Open Agents (~/.agents/skills/)`);
+      console.log(`      • Claude Code (~/.claude/skills/)`);
+      console.log(`      • Hermes (~/.hermes/skills/)`);
     }
 
-    // Step 4: Discover & Register Skills Globally
-    if (!isJson) console.log(`🌐 Step 3/4: Registering skills into global agent directories...`);
-    const skillsToRegister = [];
-    if (diagnostics.skills?.found) {
-      skillsToRegister.push(...diagnostics.skills.items);
-    } else {
-      // Synthesize a skill wrapper if repo has no SKILL.md
-      const generatedSkill = this.skillRegistry.generateSkillForRepo(targetDir, {
-        name: norm.repoName,
-        repoUrl: norm.url,
-        binaries: diagnostics.suggestions?.binaries
-      });
-      skillsToRegister.push(generatedSkill);
-    }
-
-    const registeredSkillsManifest = [];
-    for (const skill of skillsToRegister) {
-      const regResult = this.skillRegistry.registerSkill(skill, {
-        repoUrl: norm.url,
-        allHarnesses: true
-      });
-      registeredSkillsManifest.push({
-        name: skill.name,
-        path: skill.skillDir,
-        registeredHarnesses: regResult.registeredHarnesses.map(h => h.harness)
-      });
-      if (!isJson) {
-        console.log(`   ✅ Registered skill: "${skill.name}" across [${regResult.registeredHarnesses.map(h => h.harness).join(', ')}]`);
-      }
-    }
-
-    // Register slash commands if present
-    const commandsDir = path.join(targetDir, 'commands');
-    const registeredCommands = this.skillRegistry.registerCommands(commandsDir);
-    if (!isJson && registeredCommands.length > 0) {
-      console.log(`   ✅ Registered slash commands: ${registeredCommands.map(c => c.file).join(', ')}`);
-    }
-
-    // Step 5: Execute suggestions (build, package manager, binary linking)
-    if (!isJson) console.log(`⚡ Step 4/4: Executing repo setup & exposing binaries...`);
-    const suggestionResult = this.executeRepoSuggestions(targetDir, diagnostics, options);
-    const exposedBinaries = this.exposeBinaries(targetDir, diagnostics.suggestions?.binaries);
-
-    if (!isJson && exposedBinaries.length > 0) {
-      console.log(`   ✅ Exposed CLI binaries to ~/.local/bin: ${exposedBinaries.join(', ')}`);
-    }
-
-    // Step 6: Record in installed registry
+    // Record in registry
     if (!options.dryRun) {
       const installed = this.getInstalled().filter(i => i.identifier !== norm.identifier);
       installed.push({
         identifier: norm.identifier,
         repo_url: norm.url,
-        install_dir: targetDir,
+        install_dir: fs.existsSync(targetDir) ? targetDir : 'global_skills_cli',
         installed_at: new Date().toISOString(),
-        profile: diagnostics.profile,
-        detected: diagnostics.detected,
+        guide_command: executedCommand,
+        guide_followed: guideFollowed,
         skills_registered: registeredSkillsManifest,
-        commands_run: suggestionResult.commands,
-        exposed_binaries: exposedBinaries,
+        skills_synced: syncedSkills.map(s => s.skill),
         version: this.version
       });
       this.saveInstalled(installed);
@@ -388,20 +390,18 @@ class EnlightCLI {
       status: options.dryRun ? 'dry_run' : 'success',
       identifier: norm.identifier,
       repo_url: norm.url,
-      install_dir: targetDir,
-      profile: diagnostics.profile?.recommended,
+      guide_command: executedCommand,
+      guide_followed: guideFollowed,
       skills_registered: registeredSkillsManifest,
-      exposed_binaries: exposedBinaries,
-      commands_run: suggestionResult.commands
+      skills_synced: syncedSkills.map(s => s.skill)
     };
 
     if (isJson) {
       console.log(JSON.stringify(result, null, 2));
     } else {
       console.log(`\n🎉 Installation Complete!`);
-      console.log(`   • Skills Registered: ${registeredSkillsManifest.map(s => s.name).join(', ')}`);
-      console.log(`   • Global Harnesses Updated: Antigravity, Open Agents, Claude Code, Hermes, etc.`);
-      console.log(`   • Installed at: ${targetDir}`);
+      if (executedCommand) console.log(`   • Executed Guide Step: ${executedCommand}`);
+      console.log(`   • Global Harnesses Updated: Antigravity, Open Agents, Claude Code, Hermes`);
       console.log(`\n💡 The newly installed skills are immediately available to your AI agents!`);
     }
 
@@ -431,7 +431,6 @@ class EnlightCLI {
     if (!isJson) {
       console.log(`\n🗑️  Enlighten Uninstaller`);
       console.log(`   Removing: ${item.identifier} (${item.repo_url})`);
-      console.log(`   Installed at: ${item.install_dir}`);
     }
 
     if (options.dryRun) {
@@ -455,31 +454,15 @@ class EnlightCLI {
       }
     }
 
-    // 2. Remove exposed binaries
-    if (item.exposed_binaries && Array.isArray(item.exposed_binaries)) {
-      const localBin = path.join(this.homedir, '.local', 'bin');
-      for (const bin of item.exposed_binaries) {
-        const binPath = path.join(localBin, bin);
-        if (fs.existsSync(binPath) || fs.lstatSync(binPath, { throwIfNoEntry: false })) {
-          try {
-            fs.rmSync(binPath, { force: true });
-            if (!isJson) console.log(`   • Removed binary: ~/.local/bin/${bin}`);
-          } catch {}
-        }
-      }
-    }
-
-    // 3. Delete repository directory
-    if (item.install_dir && fs.existsSync(item.install_dir)) {
+    // 2. Remove repository directory if it exists
+    if (item.install_dir && fs.existsSync(item.install_dir) && item.install_dir !== 'global_skills_cli') {
       try {
         fs.rmSync(item.install_dir, { recursive: true, force: true });
         if (!isJson) console.log(`   • Deleted repository directory: ${item.install_dir}`);
-      } catch (e) {
-        if (!isJson) console.warn(`   ⚠️ Could not delete directory: ${e.message}`);
-      }
+      } catch {}
     }
 
-    // 4. Update registry
+    // 3. Update registry
     const remaining = installed.filter(i => i.identifier !== item.identifier);
     this.saveInstalled(remaining);
 
@@ -514,7 +497,7 @@ class EnlightCLI {
       const date = item.installed_at ? new Date(item.installed_at).toLocaleString() : 'unknown';
       console.log(`• ${item.identifier}`);
       console.log(`  Repo: ${item.repo_url}`);
-      console.log(`  Path: ${item.install_dir}`);
+      console.log(`  Guide Step: ${item.guide_command || 'default setup'}`);
       console.log(`  Skills: ${skills}`);
       console.log(`  Installed: ${date}\n`);
     });
@@ -523,71 +506,49 @@ class EnlightCLI {
   }
 
   /**
-   * Diagnose repository without installing
+   * Diagnose repository without installing - uses README first!
    */
-  diagnose(repoInput, options = {}) {
+  async diagnose(repoInput, options = {}) {
     const isJson = options.json;
     const norm = this.normalizeRepoUrl(repoInput);
-    const tempDir = path.join(os.tmpdir(), `enlighten-diag-${Date.now()}`);
 
     if (!isJson) {
       console.log(`\n🔍 Diagnosing: ${norm.url}...`);
     }
 
-    try {
-      if (fs.existsSync(norm.url)) {
-        // Local path
-        const result = this.scanner.scanRepo(path.resolve(norm.url));
-        if (isJson) console.log(JSON.stringify(result, null, 2));
-        else this.printDiagnostic(result);
-        return result;
+    // Fetch README without cloning
+    const readmeData = await this.readmeGuide.fetchReadme(norm.url);
+    const guide = readmeData
+      ? this.readmeGuide.parseInstallGuide(readmeData.content, norm.url)
+      : { hasGuide: false, suggestions: [] };
+
+    const diag = {
+      repository: norm.url,
+      identifier: norm.identifier,
+      readme: {
+        found: !!readmeData,
+        source: readmeData?.source || 'not found',
+        hasInstallationGuide: guide.hasGuide,
+        primarySuggestion: guide.primarySuggestion,
+        allSuggestions: guide.suggestions
       }
+    };
 
-      execSync(`git clone --depth 1 "${norm.url}" "${tempDir}"`, {
-        stdio: 'pipe',
-        timeout: 60000
-      });
-
-      const result = this.scanner.scanRepo(tempDir);
-      result.repository = norm.url;
-
-      try {
-        fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {}
-
-      if (isJson) {
-        console.log(JSON.stringify(result, null, 2));
-      } else {
-        this.printDiagnostic(result);
+    if (isJson) {
+      console.log(JSON.stringify(diag, null, 2));
+    } else {
+      console.log(`\n📊 Diagnostic Report:`);
+      console.log(`   • README Found: ${diag.readme.found ? 'Yes (' + diag.readme.source + ')' : 'No'}`);
+      console.log(`   • Official Installation Guide: ${diag.readme.hasInstallationGuide ? 'Yes' : 'No explicit command'}`);
+      if (diag.readme.primarySuggestion) {
+        console.log(`   • Recommended Command: ${diag.readme.primarySuggestion.command}`);
+        console.log(`   • Type: ${diag.readme.primarySuggestion.type}`);
+        console.log(`   • Description: ${diag.readme.primarySuggestion.description}`);
       }
-      return result;
-    } catch (e) {
-      try {
-        if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {}
-      const errRes = { status: 'error', error: e.message };
-      if (isJson) console.log(JSON.stringify(errRes, null, 2));
-      else console.error(`❌ Diagnostics failed: ${e.message}\n`);
-      return errRes;
+      console.log('');
     }
-  }
 
-  printDiagnostic(result) {
-    console.log(`\n📊 Diagnostic Report:`);
-    console.log(`   • Language: ${result.detected?.language} (confidence: ${result.detected?.language_confidence})`);
-    console.log(`   • Framework: ${result.detected?.framework}`);
-    console.log(`   • Install Method: ${result.detected?.installMethod}`);
-    console.log(`   • Recommended Profile: ${result.profile?.recommended}`);
-    console.log(`   • Skills Found: ${result.skills?.count || 0}`);
-    if (result.skills?.items?.length > 0) {
-      result.skills.items.forEach(s => {
-        console.log(`     - ${s.name}: ${s.description.slice(0, 80)}...`);
-      });
-    }
-    if (result.suggestions?.binaries?.length > 0) {
-      console.log(`   • Binaries: ${result.suggestions.binaries.join(', ')}`);
-    }
-    console.log('');
+    return diag;
   }
 }
 
@@ -616,21 +577,16 @@ USAGE:
     enlighten --help
 
 COMMANDS:
-    install <url>       Download/install any GitHub repository and automatically register
-                        all its skills into global agent skill directories.
-    diagnose <url>      Analyze repository without installing.
+    install <url>       Check README for install guide, execute suggested steps to get skills,
+                        and register skills globally across all agent harnesses.
+    diagnose <url>      Check README & repository without installing.
     list-installed      Show all managed installations and registered skills.
     uninstall <id>      Safely remove a repository and unregister its skills globally.
 
-SUPPORTED AGENT HARNESSES:
-    Antigravity / Gemini (~/.gemini/skills/)
-    Open Agents (~/.agents/skills/)
-    Claude Code (~/.claude/skills/)
-    Hermes (~/.hermes/skills/)
-    OpenCode (~/.config/opencode/skills/)
-    Codex (~/.codex/skills/)
-    Cursor (~/.cursor/skills/)
-    Zed (~/.zed/skills/)
+WORKFLOW:
+    1. Check README     Fetches the README first (no heavy cloning).
+    2. Follow Guide     Runs the author's recommended installation command (skills CLI, curl, etc.).
+    3. Global Sync      Registers all skills across Antigravity, Open Agents, Claude Code, Hermes.
 `);
     process.exit(0);
   }
@@ -638,43 +594,45 @@ SUPPORTED AGENT HARNESSES:
   const cmd = filteredArgs[0].toLowerCase();
   const target = filteredArgs[1];
 
-  switch (cmd) {
-    case 'install':
-      if (!target) {
-        console.error('Error: repository URL or shorthand required (e.g., enlighten install owner/repo)');
+  (async () => {
+    switch (cmd) {
+      case 'install':
+        if (!target) {
+          console.error('Error: repository URL or shorthand required (e.g., enlighten install owner/repo)');
+          process.exit(1);
+        }
+        await cli.install(target, { json: isJson, force: isForce, dryRun: isDryRun });
+        break;
+
+      case 'diagnose':
+        if (!target) {
+          console.error('Error: repository URL required');
+          process.exit(1);
+        }
+        await cli.diagnose(target, { json: isJson });
+        break;
+
+      case 'list':
+      case 'list-installed':
+      case 'ls':
+        cli.listInstalled({ json: isJson });
+        break;
+
+      case 'uninstall':
+      case 'remove':
+      case 'rm':
+        if (!target) {
+          console.error('Error: identifier required (use "enlighten list-installed" to see identifiers)');
+          process.exit(1);
+        }
+        cli.uninstall(target, { json: isJson, force: isForce, dryRun: isDryRun });
+        break;
+
+      default:
+        console.error(`Unknown command: "${cmd}". Run "enlighten --help" for usage.`);
         process.exit(1);
-      }
-      cli.install(target, { json: isJson, force: isForce, dryRun: isDryRun });
-      break;
-
-    case 'diagnose':
-      if (!target) {
-        console.error('Error: repository URL required');
-        process.exit(1);
-      }
-      cli.diagnose(target, { json: isJson });
-      break;
-
-    case 'list':
-    case 'list-installed':
-    case 'ls':
-      cli.listInstalled({ json: isJson });
-      break;
-
-    case 'uninstall':
-    case 'remove':
-    case 'rm':
-      if (!target) {
-        console.error('Error: identifier required (use "enlighten list-installed" to see identifiers)');
-        process.exit(1);
-      }
-      cli.uninstall(target, { json: isJson, force: isForce, dryRun: isDryRun });
-      break;
-
-    default:
-      console.error(`Unknown command: "${cmd}". Run "enlighten --help" for usage.`);
-      process.exit(1);
-  }
+    }
+  })();
 }
 
 module.exports = { EnlightCLI };

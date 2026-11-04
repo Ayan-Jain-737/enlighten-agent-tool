@@ -457,6 +457,43 @@ ${repoInfo.readmeSummary ? `## Summary from README\n${repoInfo.readmeSummary}\n`
 
     return removedFrom;
   }
+
+  /**
+   * Synchronize skills across all detected harnesses (e.g. from ~/.agents/skills to ~/.gemini/skills).
+   */
+  syncAllGlobalSkills() {
+    const harnesses = this.getHarnesses();
+    const primarySkillsDir = path.join(this.homedir, '.agents', 'skills');
+    const synced = [];
+
+    if (!fs.existsSync(primarySkillsDir)) return synced;
+
+    try {
+      const skillEntries = fs.readdirSync(primarySkillsDir, { withFileTypes: true });
+      for (const entry of skillEntries) {
+        if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
+        const skillName = entry.name;
+        const srcPath = path.join(primarySkillsDir, skillName);
+
+        for (const harness of harnesses) {
+          if (harness.skillsDir && harness.id !== 'agents' && (harness.detected || harness.id === 'gemini' || harness.id === 'claude')) {
+            const destPath = path.join(harness.skillsDir, skillName);
+            if (!fs.existsSync(destPath) && !fs.lstatSync(destPath, { throwIfNoEntry: false })) {
+              if (!this.dryRun) {
+                if (!fs.existsSync(harness.skillsDir)) {
+                  fs.mkdirSync(harness.skillsDir, { recursive: true });
+                }
+                this.linkOrCopy(srcPath, destPath);
+              }
+              synced.push({ skill: skillName, harness: harness.name });
+            }
+          }
+        }
+      }
+    } catch {}
+
+    return synced;
+  }
 }
 
 module.exports = { SkillRegistry };

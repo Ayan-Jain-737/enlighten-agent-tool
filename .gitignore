@@ -2,16 +2,38 @@
 node_modules/
 package-lock.json.bak
 
-# Enlighten local cache & installs
+# Tests & Test Artifacts
+tests/
+test/
+*.test.js
+*.spec.js
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+
+# Internal Developer & Non-User Files
+HANDOFF.md
+TECHNICAL_SPEC.md
+scratch/
+temp/
+tmp/
+*.tmp
+*.bak
+
+# Enlighten local cache, installs & test harness directories
 .enlighten/
 cache/
+.agents/
+.gemini/
+.claude/
+.codex/
+.cursor/
 
-# Hallmark review & before records
+# Hallmark & design review artifacts
+.hallmark/
 /.hallmark/
-.hallmark/before/
-.hallmark/before.json
-.hallmark/before.txt
-.hallmark/compare.html
+assets/.hallmark/
 
 # Environment & credentials
 .env
@@ -38,7 +60,3 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# Coverage & test artifacts
-coverage/
-.nyc_output/

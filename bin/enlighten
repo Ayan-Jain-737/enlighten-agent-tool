@@ -10,7 +10,7 @@ const { ScriptAdapter } = require("../skills/enlighten-installer/scripts/adapt-i
 class EnlightCLI {
   constructor() {
     this.version = "1.0.2";
-    this.cacheDir = path.join(os.homedir(), ".enlight", "cache");
+    this.cacheDir = path.join(os.homedir(), ".enlighten", "cache");
     this.installedRegistry = path.join(this.cacheDir, "installed.json");
     this.ensureDirs();
   }
@@ -32,7 +32,7 @@ class EnlightCLI {
     const scanner = new EnlightenScanner({ dryRun: options.dryRun });
     let diagnostics;
     try {
-      const tempDir = "/tmp/enlight-scan-" + Date.now();
+      const tempDir = "/tmp/enlighten-scan-" + Date.now();
       const repoCmd = "git clone --depth 1 " + repoUrl + " " + tempDir;
       execSync(repoCmd, { stdio: "pipe" });
       diagnostics = scanner.scanRepo(tempDir);
@@ -70,7 +70,7 @@ class EnlightCLI {
   diagnose(repoUrl) {
     const scanner = new EnlightenScanner();
     try {
-      const tempDir = "/tmp/enlight-diag-" + Date.now();
+      const tempDir = "/tmp/enlighten-diag-" + Date.now();
       execSync("git clone --depth 1 " + repoUrl + " " + tempDir, { stdio: "pipe", timeout: 30000 });
       const result = scanner.scanRepo(tempDir);
       console.log(JSON.stringify(result, null, 2));
@@ -88,6 +88,113 @@ class EnlightCLI {
     }
   }
 
+  listInstalled() {
+    const installed = this.getInstalled();
+    console.log("\nINSTALLED REPOSITORIES\n");
+    if (installed.length === 0) {
+      console.log("No installations found\n");
+      return;
+    }
+
+    installed.forEach(item => {
+      const date = item.installed_at ? new Date(item.installed_at).toLocaleDateString() : "unknown";
+      console.log("• " + item.identifier);
+      console.log("  " + (item.repo_url || "local"));
+      console.log("  Installed: " + date + "\n");
+    });
+  }
+
+  uninstall(identifier, options) {
+    console.log("\n🗑️  Enlighten Uninstaller\n");
+    
+    const installed = this.getInstalled();
+    const item = installed.find(i => i.identifier === identifier);
+
+    if (!item) {
+      console.log("❌ No installation found with identifier: " + identifier + "\n");
+      return { status: "not_found" };
+    }
+
+    console.log("Removing: " + (item.name || identifier));
+    console.log("Installed: " + (item.installed_at || 'unknown date'));
+
+    if (options.dryRun) {
+      console.log("\n⚠️  DRY RUN - no changes made\n");
+    }
+
+    if (!options.dryRun && !options.force) {
+      console.log("\nProceed? (y/N): ");
+      // In non-interactive mode, skip confirmation in dry-run or force mode
+      console.log("Use --force to skip confirmation\n");
+      return { status: "cancelled" };
+    }
+
+    if (!options.dryRun) {
+      this.removeInstallation(identifier);
+      console.log("\n✅ Successfully uninstalled\n");
+    }
+
+    return { status: "success" };
+  }
+
+  getInstalled() {
+    try {
+      const data = JSON.parse(fs.readFileSync(this.installedRegistry, "utf8"));
+      return data.installations || [];
+    } catch {
+      return [];
+    }
+  }
+
+  listInstalled() {
+    const installed = this.getInstalled();
+    console.log("\nINSTALLED REPOSITORIES\n");
+    if (installed.length === 0) {
+      console.log("No installations found\n");
+      return;
+    }
+
+    installed.forEach(item => {
+      const date = item.installed_at ? new Date(item.installed_at).toLocaleDateString() : "unknown";
+      console.log("• " + item.identifier);
+      console.log("  " + (item.repo_url || "local"));
+      console.log("  Installed: " + date + "\n");
+    });
+  }
+
+  uninstall(identifier, options) {
+    console.log("\n🗑️  Enlighten Uninstaller\n");
+    
+    const installed = this.getInstalled();
+    const item = installed.find(i => i.identifier === identifier);
+
+    if (!item) {
+      console.log("❌ No installation found with identifier: " + identifier + "\n");
+      return { status: "not_found" };
+    }
+
+    console.log("Removing: " + (item.name || identifier));
+    console.log("Installed: " + (item.installed_at || 'unknown date'));
+
+    if (options.dryRun) {
+      console.log("\n⚠️  DRY RUN - no changes made\n");
+    }
+
+    if (!options.dryRun && !options.force) {
+      console.log("\nProceed? (y/N): ");
+      // In non-interactive mode, skip confirmation in dry-run or force mode
+      console.log("Use --force to skip confirmation\n");
+      return { status: "cancelled" };
+    }
+
+    if (!options.dryRun) {
+      this.removeInstallation(identifier);
+      console.log("\n✅ Successfully uninstalled\n");
+    }
+
+    return { status: "success" };
+  }
+
   registerInstallation(repoUrl, identifier, info) {
     const installed = this.getInstalled();
     installed.push({
@@ -99,6 +206,12 @@ class EnlightCLI {
       version: this.version
     });
     fs.writeFileSync(this.installedRegistry, JSON.stringify({ installations: installed }, null, 2));
+  }
+
+  removeInstallation(identifier) {
+    const installed = this.getInstalled();
+    const filtered = installed.filter(i => i.identifier !== identifier);
+    fs.writeFileSync(this.installedRegistry, JSON.stringify({ installations: filtered }, null, 2));
   }
 
   getIdentifier(repoUrl) {
@@ -118,6 +231,8 @@ if (args.length === 0) {
   console.log("\nUSAGE:");
   console.log("    enlighten install <repo-url>    Install a GitHub repository");
   console.log("    enlighten diagnose <repo-url>   Analyze without installing");
+  console.log("    enlighten list-installed        List all installed repositories");
+  console.log("    enlighten uninstall <id>        Remove an installation");
   console.log("    enlighten --help                Show this help");
   process.exit(0);
 }
@@ -136,12 +251,28 @@ if (cmd === "install") {
     process.exit(1);
   }
   cli.diagnose(args[1]);
+} else if (cmd === "list-installed") {
+  cli.listInstalled();
+} else if (cmd === "uninstall") {
+  if (args.length < 2) {
+    console.error("Error: identifier required");
+    process.exit(1);
+  }
+  cli.uninstall(args[1], {
+    dryRun: args.includes("--dry-run"),
+    force: args.includes("--force")
+  });
+} else if (cmd === "list-installed") {
+  cli.listInstalled();
 } else if (cmd === "help" || cmd === "--help") {
   console.log("\nEnlight v" + cli.version);
   console.log("\nUSAGE:");
   console.log("    enlighten install <repo-url>    Install a GitHub repository");
   console.log("    enlighten diagnose <repo-url>   Analyze without installing");
+  console.log("    enlighten list-installed        List all installed repositories");
+  console.log("    enlighten uninstall <id>        Remove an installation");
   console.log("    enlighten --help                Show this help");
+  process.exit(0);
 } else {
   console.error("Unknown command: " + cmd);
 }

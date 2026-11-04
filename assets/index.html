@@ -3,158 +3,200 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Universal GitHub repository installer for AI agent harnesses">
   <title>Enlighten Agent Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      min-height: 100vh;
-      color: white;
-      padding: 40px 20px;
-    }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    h1 {
-      font-size: 3.5rem;
-      background: linear-gradient(45deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 20px;
-      font-weight: 800;
-      letter-spacing: 1px;
-    }
-    .subtitle {
-      font-size: 1.2rem;
-      color: #a0a0a0;
-      margin-bottom: 40px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-      margin: 40px 0;
-    }
-    .feature {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 15px;
-      padding: 25px 20px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .feature:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-    .feature h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      color: #00d4ff;
-    }
-    .feature p {
-      color: #a0a0a0;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-    .commands {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 15px;
-      padding: 30px;
-      margin: 40px 0;
-      backdrop-filter: blur(10px);
-    }
-    .command {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      background: rgba(0, 212, 255, 0.1);
-      border-radius: 10px;
-      padding: 15px;
-      font-family: 'Fira Code', monospace;
-      margin: 10px 0;
-    }
-    .command-code {
-      color: #00d4ff;
-      font-weight: 600;
-    }
-    .install-btn {
-      background: linear-gradient(45deg, #00d4ff, #00ff88);
-      color: #1a1a2e;
-      padding: 15px 40px;
-      border-radius: 50px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      text-decoration: none;
-      display: inline-block;
-      margin: 20px 0;
-      transition: transform 0.3s, box-shadow 0.3s;
-    }
-    .install-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.4);
-    }
-    .footer {
-      margin-top: 60px;
-      padding-top: 30px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      color: #666;
-      font-size: 0.9rem;
-    }
+/* Hallmark · shape: Feature Ledger from draw 2a3b4c · genre modern-minimal · theme: Cobalt (deal 1/3, seed enlighten-agent-tool-universal-github-repository-653c·05043f59·2026-11-04·r1) · job: try · draw: 2a3b4c
+ * hero: Field · nav: edge-aligned · footer: mast · imagery: product built in hero and demo-2 · signature: the CLI output showing auto-detection
+ * axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · fold: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H4 E5 S4 R4 V4 · weakest: S, could be any installer; led with the real detect output */
+
+:root {
+  color-scheme: dark;
+  --space-3xs: 2px; --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px; --space-lg: 24px; --space-xl: 40px; --space-2xl: 64px; --space-3xl: 96px; --space-4xl: 144px;
+  --text-xs: 0.8125rem; --text-sm: 0.875rem; --text-md: 1rem; --text-lg: 1.25rem; --text-xl: 1.5625rem; --text-2xl: 1.953rem; --text-3xl: 2.441rem;
+  --text-display-s: clamp(2.25rem, 4vw + 0.5rem, 3.75rem); --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem); --text-title: clamp(1.25rem, 0.75vw + 0.875rem, 1.625rem); --text-lead: clamp(1.125rem, 0.35vw + 1rem, 1.375rem);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); --ease-in: cubic-bezier(0.7, 0, 0.84, 0); --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro: 120ms; --dur-short: 220ms; --dur-long: 420ms;
+  --color-error: oklch(72% 0.15 27); --color-success: oklch(76% 0.13 150);
+  --container: 1440px; --gutter: 64px; --gap-columns: 32px; --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100; --z-sticky: 200; --z-sticky-nav: 300; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+  --color-paper: oklch(98.6% 0.005 250); --color-paper-2: oklch(96.2% 0.008 252); --color-paper-3: oklch(93% 0.011 252);
+  --color-ink: oklch(21% 0.028 262); --color-ink-2: oklch(36% 0.022 260); --color-muted: oklch(50% 0.018 258);
+  --color-rule: oklch(90% 0.009 252); --color-rule-2: oklch(83% 0.012 252);
+  --color-accent: oklch(52% 0.19 258); --color-accent-ink: oklch(98.6% 0.005 250); --color-focus: oklch(52% 0.19 258);
+  --color-accent-wash: oklch(100% 0.028 256);
+  --color-graphite: oklch(21% 0.024 262); --color-graphite-2: oklch(26.5% 0.026 262); --color-graphite-ink: oklch(93% 0.010 250);
+  --font-display: "Familjen Grotesk", system-ui, sans-serif; --font-body: "IBM Plex Sans", system-ui, sans-serif; --font-outlier: "JetBrains Mono", ui-monospace, monospace;
+  --radius-card: 8px; --radius-input: 6px; --radius-pill: 999px; --rule-hair: 1px; --shadow-card: 0 1px 2px oklch(21% 0.028 262 / 0.06);
+  --tracking-display: -0.028em; --display-weight: 600; --stretch-body: 87.5%;
+}
+
+/* Base rules (Hallmark Floor) */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+html { scrollbar-color: var(--color-muted) var(--color-paper); scroll-padding-top: var(--space-3xl); }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); font-family: var(--font-body); font-size: var(--text-md); line-height: 1.55; -webkit-font-smoothing: antialiased; caret-color: var(--color-accent); }
+::selection { background: color-mix(in oklab, var(--color-accent) 22%, transparent); color: var(--color-ink); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.16em; text-decoration-color: var(--color-rule-2); }
+a:hover { text-decoration-color: var(--color-accent); }
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); line-height: 1.02; overflow-wrap: break-word; min-width: 0; text-wrap: balance; color: var(--color-ink); }
+h1 { max-width: 20ch; font-size: var(--text-display); } h2 { max-width: 30ch; font-size: var(--text-section); } h3 { max-width: 40ch; font-size: var(--text-title); line-height: 1.2; }
+.lead { font-size: var(--text-lead); line-height: 1.45; max-width: 52ch; }
+p { margin: 0; text-wrap: pretty; }
+p:not([class]) { max-width: 65ch; }
+img, video { max-width: 100%; height: auto; display: block; }
+svg { display: block; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; }
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: var(--gutter); box-sizing: border-box; }
+.num, .figure, td.num { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 60rem) { :root { --gutter: 24px; --section-gap-s: 80px; --section-gap: 96px; --section-gap-l: 120px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; --section-gap-s: 56px; --section-gap: 72px; --section-gap-l: 96px; --gap-columns: 16px; } }
+@media (prefers-reduced-motion: reduce) { *:not(.keep-motion), *:not(.keep-motion)::before, *:not(.keep-motion)::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+
+/* Skip link */
+.skip { position: absolute; left: var(--space-md); top: calc(-1 * var(--space-3xl)); z-index: var(--z-toast); padding: var(--space-xs) var(--space-md); background: var(--color-ink); color: var(--color-paper); }
+.skip:focus-visible { top: var(--space-md); }
+
+/* Nav */
+nav { --height: 64px; display: flex; align-items: center; justify-content: space-between; padding-block: var(--space-md); }
+nav .logo { font: 600 var(--text-section)/1 var(--font-display); color: var(--color-ink); text-decoration: none; }
+nav .actions { display: flex; gap: var(--space-md); align-items: center; }
+
+/* Buttons - keycap style */
+.btn { display: inline-flex; align-items: center; gap: var(--space-xs); min-height: 48px; padding: 0 var(--space-lg); border: 1px solid var(--color-rule); border-radius: var(--radius-input); background: var(--color-paper-2); color: var(--color-ink); font: 500 var(--text-md)/1 var(--font-body); white-space: nowrap; text-decoration: none; cursor: pointer; transition: background-color var(--dur-short) var(--ease-out), transform var(--dur-micro) var(--ease-out); box-shadow: var(--shadow-card); }
+.btn:hover { background: var(--color-paper-3); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; transform: none; }
+.btn--primary { background: var(--color-accent); color: var(--color-accent-ink); border-color: var(--color-accent); }
+
+/* Hero (Field posture: feature ledger on graphite panel) */
+.hero { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap-columns); padding-block: var(--section-gap); }
+.hero-text { grid-column: 1 / 6; }
+.hero-panel { grid-column: 7 / 13; background: var(--color-graphite); color: var(--color-graphite-ink); padding: var(--space-2xl); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.hero-text h1 { margin-bottom: var(--space-md); font-size: var(--text-display-s); }
+.hero-text .lead { max-width: 52ch; color: var(--color-ink-2); }
+.hero-text .btn { margin-top: var(--space-lg); }
+
+/* CLI screen mockup on graphite */
+pre { font-family: var(--font-outlier); font-size: var(--text-sm); line-height: 1.4; background: var(--color-paper); padding: var(--space-lg); border-radius: var(--radius-card); overflow-x: auto; }
+.code-line { color: var(--color-ink); }
+.code-line .cmd { color: var(--color-accent); font-weight: 600; }
+.code-line .arg { color: var(--color-ink-2); }
+
+/* Sections */
+section { padding-block: var(--section-gap); }
+.container { max-width: var(--container); margin-inline: auto; }
+.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap-columns); margin-top: var(--space-2xl); }
+.feature-card { background: var(--color-paper-2); border: 1px solid var(--color-rule); padding: var(--space-lg); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+.feature-card h3 { font-size: var(--text-title); margin-bottom: var(--space-sm); color: var(--color-ink); }
+.feature-card p { color: var(--color-ink-2); font-size: var(--text-sm); line-height: 1.5; }
+
+/* Footer */
+footer { background: var(--color-paper-2); color: var(--color-ink); padding-top: var(--space-2xl); margin-top: var(--section-gap-l); }
+footer .mast { text-align: center; }
+footer .mast .logo { font-size: var(--text-2xl); margin-bottom: var(--space-lg); }
+footer .links { display: flex; flex-wrap: wrap; gap: var(--space-lg); justify-content: center; margin-bottom: var(--space-xl); }
+footer .links a { color: var(--color-ink-2); text-decoration: none; font-size: var(--text-sm); }
+footer .links a:hover { color: var(--color-accent); }
+footer .meta { color: var(--color-muted); font-size: var(--text-xs); text-align: center; }
+
+@media (max-width: 60rem) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-text, .hero-panel { grid-column: 1; }
+  .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 40rem) {
+  .features { grid-template-columns: 1fr; }
+}
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Enlighten</h1>
-    <p class="subtitle">Universal GitHub repository installer for AI agent harnesses</p>
-    
-    <div class="features">
-      <div class="feature">
-        <h3>⚡ Auto-Detect</h3>
-        <p>Intelligent scanning detects language and framework automatically</p>
+  <a class="skip" href="#main">Skip to content</a>
+  
+  <header>
+    <nav>
+      <a class="logo" href="/">Enlighten</a>
+      <div class="actions">
+        <a href="/commands" class="btn">Commands</a>
       </div>
-      <div class="feature">
-        <h3>🔧 Multi-Platform</h3>
-        <p>Works with Claude Code, Hermes, Opencode, and more</p>
+    </nav>
+  </header>
+  
+  <main id="main" class="container">
+    <!-- Hero (Field posture - feature ledger on graphite) -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Install AI agent tools instantly</h1>
+        <p class="lead">Universal GitHub repository installer for Claude Code, Hermes, Opencode, Codex and more.</p>
+        <a href="https://www.npmjs.com/package/enlighten-agent-tool" class="btn btn--primary">Install on npm</a>
       </div>
-      <div class="feature">
-        <h3>🧼 Clean Uninstall</h3>
-        <p>Fully reversible installations with no traces left behind</p>
+      <div class="hero-panel">
+        <pre><code><span class="code-line"><span class="cmd">$</span> enlighten install https://github.com/vercel/next.js</span>
+<span class="code-line"><span class="cmd">> </span>Scanning repository...</span>
+<span class="code-line"><span class="cmd">  Language:</span> TypeScript</span>
+<span class="code-line"><span class="cmd">  Framework:</span> Next.js</span>
+<span class="code-line"><span class="cmd">  Profile:</span> web-developer</span>
+<span class="code-line"><span class="cmd">  Harness:</span> Hermes</span>
+<span class="code-line"><span class="cmd"></span>Install complete!</span>
+</code></pre>
       </div>
-    </div>
+    </section>
 
-    <div class="commands">
-      <h3 style="color: #00d4ff; margin-bottom: 20px;">Quick Commands</h3>
-      <div class="command">
-        <span class="command-code">enlighten install &lt;repo-url&gt;</span>
-        <span>Install any GitHub repository</span>
+    <!-- Features -->
+    <section>
+      <h2>Key features</h2>
+      <div class="features">
+        <div class="feature-card">
+          <h3>Auto-Detect</h3>
+          <p>Intelligent scanning detects language and framework automatically.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Multi-Platform</h3>
+          <p>Works with Claude Code, Hermes, Opencode, Codex and more.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Clean Uninstall</h3>
+          <p>Fully reversible installations with no traces left behind.</p>
+        </div>
       </div>
-      <div class="command">
-        <span class="command-code">enlighten list-installed</span>
-        <span>View all managed installations</span>
-      </div>
-      <div class="command">
-        <span class="command-code">enlighten diagnose &lt;repo-url&gt;</span>
-        <span>Analyze repository without installing</span>
-      </div>
-    </div>
+    </section>
 
-    <a href="https://www.npmjs.com/package/enlighten-agent-tool" class="install-btn">
-      📦 npm install -g enlighten-agent-tool
-    </a>
+    <!-- Quick Start -->
+    <section>
+      <h2>Quick commands</h2>
+      <div class="feature-card" style="max-width: 720px; margin-inline: auto;">
+        <pre><code>enlighten install &lt;repo-url&gt;    Install a GitHub repository
+enlighten diagnose &lt;repo-url&gt;  Analyze repository without installing
+enlighten list-installed        View all managed installations
+enlighten uninstall &lt;id&gt;        Remove an installed repository</code></pre>
+      </div>
+    </section>
 
-    <div class="footer">
-      <p>Made with ❤️ by <a href="https://github.com/Ayan-Jain-737" style="color: #00d4ff;">Ayan-Jain-737</a> • 
-      <a href="https://github.com/Ayan-Jain-737/enlighten-agent-tool" style="color: #00d4ff;">View on GitHub</a></p>
-    </div>
-  </div>
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="mast">
+          <a href="/" class="logo" style="color: var(--color-accent);">Enlighten</a>
+          <div class="links">
+            <a href="/commands">Commands</a>
+            <a href="https://github.com/Ayan-Jain-737/enlighten-agent-tool">GitHub</a>
+            <a href="https://www.npmjs.com/package/enlighten-agent-tool">npm</a>
+          </div>
+          <p class="meta">Version 1.0.4
+MIT License
+Created by <a href="https://github.com/Ayan-Jain-737" style="color: var(--color-accent);">Ayan-Jain-737</a></p>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+<script>window.hallmarkSlots = (m) => { for (const [k, v] of Object.entries(m)) { const s = document.querySelector(`[data-slot="${k}"]`); if (!s) continue; const im = new Image(); im.src = typeof v === 'string' ? v : v.src; im.alt = (typeof v === 'object' && v.alt) || s.dataset.alt || ''; s.querySelectorAll(':scope > img').forEach((o) => o.remove()); s.prepend(im); } }; document.querySelectorAll('[data-slot] img').forEach((i) => { if (i.complete && !i.naturalWidth) i.remove(); else i.addEventListener('error', () => i.remove(), { once: true }); });</script>
 </body>
 </html>

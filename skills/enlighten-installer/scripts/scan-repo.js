@@ -2,7 +2,7 @@
 /**
  * enlighten-installer: Core Scanner
  * Standalone repository scanner - no external dependencies
- * Detects language, framework, dependencies, and profiles
+ * Detects language, framework, dependencies, profiles, AND install methods
  */
 
 const fs = require('fs');
@@ -29,44 +29,44 @@ class EnlightenScanner {
         if (content.includes('python') || content.includes('django') || content.includes('fastapi') || content.includes('flask') || content.includes('pytorch') || content.includes('torch')) {
           // Prioritize Python if requirements.txt exists
           if (fs.existsSync(path.join(dir, 'requirements.txt'))) {
-            return { language: 'python', confidence: 0.9 };
+            return { language: 'python', confidence: 0.9, installMethod: 'pip' };
           }
         }
         
         // This is definitely a Node.js/TypeScript project
         if (pkg.types || content.includes('typescript') || path.basename(dir).includes('ts')) {
-          return { language: 'typescript', confidence: 0.9 };
+          return { language: 'typescript', confidence: 0.9, installMethod: 'npm' };
         }
         
         // Default JS
-        return { language: 'javascript', confidence: 0.8 };
+        return { language: 'javascript', confidence: 0.8, installMethod: 'npm' };
       } catch (e) {
         // Fall through to file-based detection
       }
     }
     
     const markers = {
-      'python': ['requirements.txt', 'setup.py', 'pyproject.toml', 'Pipfile'],
-      'go': ['go.mod', 'go.sum'],
-      'rust': ['Cargo.toml', 'Cargo.lock'],
-      'java': ['build.gradle', 'pom.xml', 'settings.gradle'],
-      'csharp': ['*.csproj', '*.sln'],
-      'cpp': ['CMakeLists.txt', 'Makefile'],
-      'ruby': ['Gemfile'],
-      'php': ['composer.json'],
-      'swift': ['Package.swift'],
-      'kotlin': ['build.gradle.kts'],
-      'dart': ['pubspec.yaml']
+      'python': { files: ['requirements.txt', 'setup.py', 'pyproject.toml', 'Pipfile'], installMethod: 'pip' },
+      'go': { files: ['go.mod', 'go.sum'], installMethod: 'go' },
+      'rust': { files: ['Cargo.toml', 'Cargo.lock'], installMethod: 'cargo' },
+      'java': { files: ['build.gradle', 'pom.xml', 'settings.gradle'], installMethod: 'gradle' },
+      'csharp': { files: ['*.csproj', '*.sln'], installMethod: 'dotnet' },
+      'cpp': { files: ['CMakeLists.txt', 'Makefile'], installMethod: 'cmake' },
+      'ruby': { files: ['Gemfile'], installMethod: 'bundler' },
+      'php': { files: ['composer.json'], installMethod: 'composer' },
+      'swift': { files: ['Package.swift'], installMethod: 'swift' },
+      'kotlin': { files: ['build.gradle.kts'], installMethod: 'gradle' },
+      'dart': { files: ['pubspec.yaml'], installMethod: 'pub' }
     };
 
-    for (const [lang, files] of Object.entries(markers)) {
-      for (const file of files) {
+    for (const [lang, config] of Object.entries(markers)) {
+      for (const file of config.files) {
         if (fs.existsSync(path.join(dir, file))) {
-          return { language: lang, confidence: 0.9 };
+          return { language: lang, confidence: 0.9, installMethod: config.installMethod };
         }
       }
     }
-    return { language: 'unknown', confidence: 0.1 };
+    return { language: 'unknown', confidence: 0.1, installMethod: 'manual' };
   }
 
   detectFramework(dir, language) {
@@ -83,7 +83,17 @@ class EnlightenScanner {
           'angular': ['@angular/core'],
           'next': ['next'],
           'svelte': ['svelte'],
-          'nestjs': ['@nestjs/core']
+          'nestjs': ['@nestjs/core'],
+          'express': ['express'],
+          'koa': ['koa'],
+          'fastify': ['fastify'],
+          'vite': ['vite'],
+          'webpack': ['webpack'],
+          'astro': ['astro'],
+          'remix': ['@remix-run/react'],
+          'gatsby': ['gatsby'],
+          'nuxt': ['nuxt'],
+          'sveltekit': ['@sveltejs/kit']
         };
         
         for (const [fw, keywords] of Object.entries(frameworks)) {
@@ -103,7 +113,23 @@ class EnlightenScanner {
           'django': ['django'],
           'fastapi': ['fastapi'],
           'flask': ['flask'],
-          'pytorch': ['torch']
+          'pytorch': ['torch'],
+          'tensorflow': ['tensorflow'],
+          'jax': ['jax'],
+          'flax': ['flax'],
+          'langchain': ['langchain'],
+          'llama-index': ['llama_index'],
+          'transformers': ['transformers'],
+          'pandas': ['pandas'],
+          'numpy': ['numpy'],
+          'scikit-learn': ['scikit-learn'],
+          'pydantic': ['pydantic'],
+          'sqlalchemy': ['sqlalchemy'],
+          'alembic': ['alembic'],
+          'celery': ['celery'],
+          'redis-py': ['redis'],
+          'psycopg2': ['psycopg2'],
+          'asyncpg': ['asyncpg']
         };
         
         for (const [fw, keywords] of Object.entries(frameworks)) {
@@ -112,6 +138,86 @@ class EnlightenScanner {
           }
         }
       } catch (e) {}
+    }
+
+    // Go frameworks
+    if (language === 'go') {
+      const goModPath = path.join(dir, 'go.mod');
+      if (fs.existsSync(goModPath)) {
+        try {
+          const content = fs.readFileSync(goModPath, 'utf8').toLowerCase();
+          const frameworks = {
+            'gin': ['gin-gonic/gin'],
+            'echo': ['labstack/echo'],
+            'fiber': ['gofiber/fiber'],
+            'chi': ['go-chi/chi'],
+            'gorilla/mux': ['gorilla/mux'],
+            'grpc': ['google.golang.org/grpc']
+          };
+          
+          for (const [fw, keywords] of Object.entries(frameworks)) {
+            if (keywords.some(k => content.includes(k))) {
+              return { framework: fw, confidence: 0.9 };
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Rust frameworks
+    if (language === 'rust') {
+      const cargoPath = path.join(dir, 'Cargo.toml');
+      if (fs.existsSync(cargoPath)) {
+        try {
+          const content = fs.readFileSync(cargoPath, 'utf8').toLowerCase();
+          const frameworks = {
+            'actix': ['actix-web'],
+            'rocket': ['rocket'],
+            'axum': ['axum'],
+            'warp': ['warp'],
+            'tokio': ['tokio'],
+            'async-std': ['async-std'],
+            'serde': ['serde'],
+            'diesel': ['diesel'],
+            'sqlx': ['sqlx'],
+            'tauri': ['tauri'],
+            'bevy': ['bevy']
+          };
+          
+          for (const [fw, keywords] of Object.entries(frameworks)) {
+            if (keywords.some(k => content.includes(k))) {
+              return { framework: fw, confidence: 0.9 };
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Java frameworks
+    if (language === 'java') {
+      const gradlePath = path.join(dir, 'build.gradle');
+      const pomPath = path.join(dir, 'pom.xml');
+      const content = (fs.existsSync(gradlePath) ? fs.readFileSync(gradlePath, 'utf8') : '') + 
+                      (fs.existsSync(pomPath) ? fs.readFileSync(pomPath, 'utf8') : '');
+      const lowerContent = content.toLowerCase();
+      
+      const frameworks = {
+        'spring-boot': ['spring-boot'],
+        'spring': ['spring-framework', 'spring-web'],
+        'quarkus': ['quarkus'],
+        'micronaut': ['micronaut'],
+        'vertx': ['vertx'],
+        'grpc': ['grpc'],
+        'kafka': ['kafka'],
+        'hibernate': ['hibernate'],
+        'mybatis': ['mybatis']
+      };
+      
+      for (const [fw, keywords] of Object.entries(frameworks)) {
+        if (keywords.some(k => lowerContent.includes(k))) {
+          return { framework: fw, confidence: 0.9 };
+        }
+      }
     }
 
     return { framework: 'generic', confidence: 0.5 };
@@ -124,14 +230,37 @@ class EnlightenScanner {
       'next': 'web-developer',
       'svelte': 'web-developer',
       'nestjs': 'web-developer',
+      'express': 'web-developer',
+      'angular': 'web-developer',
+      'sveltekit': 'web-developer',
+      'nuxt': 'web-developer',
+      'remix': 'web-developer',
       'django': 'python-backend',
       'fastapi': 'python-backend',
       'flask': 'python-backend',
+      'pytorch': 'ml-researcher',
+      'tensorflow': 'ml-researcher',
+      'jax': 'ml-researcher',
+      'langchain': 'ml-researcher',
+      'go': 'go-developer',
+      'gin': 'go-developer',
+      'echo': 'go-developer',
+      'fiber': 'go-developer',
+      'rust': 'rust-developer',
+      'actix': 'rust-developer',
+      'axum': 'rust-developer',
+      'tokio': 'rust-developer',
+      'tauri': 'rust-developer',
+      'java': 'java-enterprise',
+      'spring-boot': 'java-enterprise',
+      'quarkus': 'java-enterprise',
+      'csharp': 'dotnet-developer',
+      'cpp': 'cpp-developer',
       'go': 'go-developer',
       'rust': 'rust-developer',
-      'java': 'java-enterprise',
-      'csharp': 'dotnet-developer',
-      'cpp': 'cpp-developer'
+      'python': 'python-backend',
+      'typescript': 'web-developer',
+      'javascript': 'web-developer'
     };
 
     return mapping[framework.framework] || mapping[language.language] || 'developer';
@@ -141,7 +270,7 @@ class EnlightenScanner {
     console.log(JSON.stringify({
       status: 'scanning',
       repo: repoPath,
-      steps: ['detecting-language', 'detecting-framework', 'mapping-profile']
+      steps: ['detecting-language', 'detecting-framework', 'mapping-profile', 'detecting-install-method']
     }, null, 2));
 
     const langResult = this.detectLanguage(repoPath);
@@ -155,7 +284,8 @@ class EnlightenScanner {
         language: langResult.language,
         language_confidence: langResult.confidence,
         framework: fwResult.framework,
-        framework_confidence: fwResult.confidence
+        framework_confidence: fwResult.confidence,
+        installMethod: langResult.installMethod
       },
       profile: {
         recommended: profile,
@@ -189,10 +319,10 @@ if (require.main === module) {
   const scanner = new EnlightenScanner();
   try {
     const result = scanner.scanRepo(repoPath);
-    console.log(JSON.stringify(result, null, 2));
+    console.log(JSON.stringify(result, null, 2))
   } catch (e) {
-    console.error(JSON.stringify({ error: e.message }));
-    process.exit(1);
+    console.error(JSON.stringify({ error: e.message }))
+    process.exit(1)
   }
 }
 

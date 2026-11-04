@@ -1,0 +1,22 @@
+[
+ {
+  "shape": "Feature Ledger",
+  "theme": "Cobalt",
+  "axes": "light/grotesk-sans/cool",
+  "hero": "Field",
+  "nav": "edge-aligned",
+  "footer": "mast",
+  "imagery": "product built in hero",
+  "signature": "CLI output showing auto-detection",
+  "sections": [
+   "Hero",
+   "Features",
+   "Quick Start",
+   "Footer"
+  ],
+  "waived": [],
+  "prompt": "enlighten-agent-tool installer",
+  "date": "2026-11-04",
+  "mode": "build"
+ }
+]

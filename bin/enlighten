@@ -110,7 +110,7 @@ class EnlightCLI {
       return true;
     }
     if (fs.existsSync(targetDir)) {
-      if (options.force) {
+      if (options.force || !fs.existsSync(path.join(targetDir, '.git'))) {
         fs.rmSync(targetDir, { recursive: true, force: true });
       } else {
         return true;
@@ -122,7 +122,7 @@ class EnlightCLI {
     try {
       execSync(`git clone --depth 1 "${norm.url}" "${targetDir}"`, {
         stdio: 'pipe',
-        timeout: 120000
+        timeout: 300000
       });
       return true;
     } catch (e) {
@@ -320,7 +320,13 @@ class EnlightCLI {
 
     // Fallback if no guide command executed (or local repo)
     if (!guideFollowed) {
-      if (!isJson) console.log(`   ℹ️ No direct installer command in README; checking repository files...`);
+      if (!isJson) {
+        if (guide.hasGuide && guide.primarySuggestion) {
+          console.log(`   ℹ️ Guided setup requires interactive terminal; proceeding with direct repository skill installation...`);
+        } else {
+          console.log(`   ℹ️ No direct installer command in README; checking repository files...`);
+        }
+      }
       const cloned = this.ensureClone(norm, targetDir, options);
       if (cloned && fs.existsSync(targetDir)) {
         const diagnostics = this.scanner.scanRepo(targetDir);
@@ -401,6 +407,9 @@ class EnlightCLI {
     } else {
       console.log(`\n🎉 Installation Complete!`);
       if (executedCommand) console.log(`   • Executed Guide Step: ${executedCommand}`);
+      if (registeredSkillsManifest.length > 0) {
+        console.log(`   • Skills Discovered & Registered: ${registeredSkillsManifest.length}`);
+      }
       console.log(`   • Global Harnesses Updated: Antigravity, Open Agents, Claude Code, Hermes`);
       console.log(`\n💡 The newly installed skills are immediately available to your AI agents!`);
     }

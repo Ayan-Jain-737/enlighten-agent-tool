@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * enlighten-installer: Adapt Script
+ * install-anything-installer: Adapt Script
  * Adapts install commands/scripts for the target OS and harness
  * Handles ALL package managers and install methods automatically
  */
@@ -30,7 +30,10 @@ class ScriptAdapter {
   detectHarness() {
     if (this.harness && this.harness !== 'auto') return this.harness;
 
-    // Check explicit enlighten env vars
+    // Check explicit env vars
+    if (process.env.INSTALL_ANYTHING_CALLER_HARNESS) return process.env.INSTALL_ANYTHING_CALLER_HARNESS;
+    if (process.env.INSTALL_ANYTHING_TARGET_HARNESS) return process.env.INSTALL_ANYTHING_TARGET_HARNESS;
+    if (process.env.INSTALL_ANYTHING_HARNESS) return process.env.INSTALL_ANYTHING_HARNESS;
     if (process.env.ENLIGHTEN_CALLER_HARNESS) return process.env.ENLIGHTEN_CALLER_HARNESS;
     if (process.env.ENLIGHTEN_TARGET_HARNESS) return process.env.ENLIGHTEN_TARGET_HARNESS;
     if (process.env.ENLIGHTEN_HARNESS) return process.env.ENLIGHTEN_HARNESS;
@@ -299,7 +302,10 @@ class ScriptAdapter {
   detectHarness() {
     if (this.harness && this.harness !== 'auto') return this.harness;
 
-    // Check explicit enlighten env vars
+    // Check explicit env vars
+    if (process.env.INSTALL_ANYTHING_CALLER_HARNESS) return process.env.INSTALL_ANYTHING_CALLER_HARNESS;
+    if (process.env.INSTALL_ANYTHING_TARGET_HARNESS) return process.env.INSTALL_ANYTHING_TARGET_HARNESS;
+    if (process.env.INSTALL_ANYTHING_HARNESS) return process.env.INSTALL_ANYTHING_HARNESS;
     if (process.env.ENLIGHTEN_CALLER_HARNESS) return process.env.ENLIGHTEN_CALLER_HARNESS;
     if (process.env.ENLIGHTEN_TARGET_HARNESS) return process.env.ENLIGHTEN_TARGET_HARNESS;
     if (process.env.ENLIGHTEN_HARNESS) return process.env.ENLIGHTEN_HARNESS;
@@ -389,9 +395,9 @@ class ScriptAdapter {
     // Add harness-specific steps
     const managers = {
       gemini: {
-        skillInstall: 'enlighten install',
-        skillRemove: 'enlighten uninstall',
-        skillUpdate: 'enlighten install --force'
+        skillInstall: 'install-anything install',
+        skillRemove: 'install-anything uninstall',
+        skillUpdate: 'install-anything install --force'
       },
       hermes: {
         skillInstall: 'npx ecc plugin add',

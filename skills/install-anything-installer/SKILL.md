@@ -1,5 +1,5 @@
 ---
-name: enlighten-installer
+name: install-anything-installer
 description: >-
   Repository scanner, adapter, and installation engine.
   Scans any GitHub repository for programming languages, frameworks, package managers,
@@ -7,9 +7,9 @@ description: >-
   and registers skills into the caller agent folder and global storage without polluting unused agent directories.
 ---
 
-# Enlighten Installer Engine
+# install-anything Installer Engine
 
-The **Enlighten Installer** is the core scanning and adaptation engine for Enlighten.
+The **install-anything Installer** is the core scanning and adaptation engine for install-anything.
 
 ## Features
 
@@ -23,10 +23,10 @@ The **Enlighten Installer** is the core scanning and adaptation engine for Enlig
 
 ```bash
 # Direct installer CLI (targets active agent and global):
-enlighten install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
+install-anything install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
 
 # Diagnose without installing:
-enlighten diagnose <repo-url>
+install-anything diagnose <repo-url>
 ```
 
 ## Helper Scripts

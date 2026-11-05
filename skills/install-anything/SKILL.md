@@ -1,5 +1,5 @@
 ---
-name: enlighten
+name: install-anything
 description: >-
   Universal GitHub repository and skill installer for AI agent harnesses.
   Use this skill whenever asked to install, download, import, or set up any GitHub repository,
@@ -9,9 +9,9 @@ description: >-
   and executes build/install instructions suggested by the repository.
 ---
 
-# Enlighten - Universal Agent Skill & Repository Installer
+# install-anything - Universal Agent Skill & Repository Installer
 
-Enlighten allows AI agents and developers to download and install any GitHub repository in one command.
+install-anything allows AI agents and developers to download and install any GitHub repository in one command.
 It automatically discovers skills inside repositories and registers them for the active agent harness and global storage.
 
 ## Capabilities
@@ -22,7 +22,7 @@ It automatically discovers skills inside repositories and registers them for the
    - Open Agents (`~/.agents/skills/` & `~/.agents/.skill-lock.json`)
    - Avoids creating or touching unused directories for other agents (like Codex, Zed, Cursor, etc.).
    - Can optionally target any specific harness with `--agent <name>` or all harnesses with `--all-agents`.
-3. **Automatic Skill Synthesis**: If a repository is a tool without an existing `SKILL.md`, Enlighten generates an agent skill wrapper so agents can discover and use the newly installed tool.
+3. **Automatic Skill Synthesis**: If a repository is a tool without an existing `SKILL.md`, install-anything generates an agent skill wrapper so agents can discover and use the newly installed tool.
 4. **Executes Repo Suggestions**: Detects package managers (`npm`, `pip`, `cargo`, `go`, etc.) and suggested build/install commands from `README.md`, executes them, and links binaries to `~/.local/bin`.
 5. **Full Lifecycle Management**: Includes diagnosis, installation, listing, and clean uninstallation.
 
@@ -34,60 +34,60 @@ When the user asks you to install, import, or set up a repository or skill, run 
 
 ### 1. Discover Skills & Tool Repositories (Find)
 ```bash
-enlighten find <query>
+install-anything find <query>
 ```
 Searches the open registry (`skills.sh`), curated battle-tested skills, and developer tool repositories.
 
 **Examples:**
 ```bash
 # Find skills or tools for React:
-enlighten find react
+install-anything find react
 
 # Find testing tools (Playwright, Vitest, Jest):
-enlighten find testing
+install-anything find testing
 
 # Machine-readable output for agent consumption:
-enlighten find <query> --json
+install-anything find <query> --json
 ```
 
 ### 2. Install Repository & Register Skills
 ```bash
-enlighten install <repo-url-or-shorthand>
+install-anything install <repo-url-or-shorthand>
 ```
 *Fallback if CLI is not directly in PATH:*
 ```bash
-node ~/.gemini/skills/enlighten/scripts/dispatch.js install <repo-url-or-shorthand>
+node ~/.gemini/skills/install-anything/scripts/dispatch.js install <repo-url-or-shorthand>
 ```
 
 **Examples:**
 ```bash
 # Install by GitHub shorthand:
-enlighten install vercel-labs/agent-skills
+install-anything install vercel-labs/agent-skills
 
 # Install by full URL:
-enlighten install https://github.com/affaan-m/ECC
+install-anything install https://github.com/affaan-m/ECC
 
 # Machine-readable JSON output:
-enlighten install https://github.com/user/repo --json
+install-anything install https://github.com/user/repo --json
 
 # Preview without making changes:
-enlighten install https://github.com/user/repo --dry-run
+install-anything install https://github.com/user/repo --dry-run
 ```
 
 ### 3. Inspect Repository Before Installing (Diagnose)
 ```bash
-enlighten diagnose https://github.com/user/repo
+install-anything diagnose https://github.com/user/repo
 ```
 Analyzes language, framework, dependencies, and skills without installing anything permanently.
 
 ### 4. List All Managed Installations
 ```bash
-enlighten list-installed
+install-anything list-installed
 ```
 
 ### 5. Safe Removal (Uninstall)
 ```bash
-enlighten uninstall <identifier> --force
+install-anything uninstall <identifier> --force
 ```
 Removes the cloned repository and unregisters all associated skills from all global agent skill folders.
 
@@ -96,13 +96,13 @@ Removes the cloned repository and unregisters all associated skills from all glo
 ## What Happens During Installation
 
 ```
-1. Clone / Fetch Repo  → Downloaded into ~/.enlighten/repos/<owner>/<repo>
+1. Clone / Fetch Repo  → Downloaded into ~/.install-anything/repos/<owner>/<repo>
 2. Scan & Classify    → Detects language, framework, package manager & profile
 3. Skill Registration → Skills are linked into the active agent folder (~/.gemini/skills/)
                          and canonical global storage (~/.agents/skills/)
 4. Repo Setup         → Runs repo-suggested commands (npm install, pip install, cargo build)
 5. Expose Binaries    → Symlinks tool executables into ~/.local/bin
-6. Registry Update    → Recorded in ~/.enlighten/cache/installed.json
+6. Registry Update    → Recorded in ~/.install-anything/cache/installed.json
 ```
 
 ## JSON Output Format
@@ -113,12 +113,12 @@ When run with `--json`:
   "status": "success",
   "identifier": "owner-repo",
   "repo_url": "https://github.com/owner/repo.git",
-  "install_dir": "/home/user/.enlighten/repos/owner/repo",
+  "install_dir": "/home/user/.install-anything/repos/owner/repo",
   "profile": "web-developer",
   "skills_registered": [
     {
       "name": "my-skill",
-      "path": "/home/user/.enlighten/repos/owner/repo/skills/my-skill",
+      "path": "/home/user/.install-anything/repos/owner/repo/skills/my-skill",
       "registeredHarnesses": ["Open Agents", "Antigravity / Gemini"]
     }
   ],
@@ -136,5 +136,5 @@ When run with `--json`:
   ```
 - **Reinstall existing repo**: Add the `--force` flag:
   ```bash
-  enlighten install <repo-url> --force
+  install-anything install <repo-url> --force
   ```

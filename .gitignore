@@ -21,7 +21,8 @@ tmp/
 *.tmp
 *.bak
 
-# Enlighten local cache, installs & test harness directories
+# install-anything local cache, installs & test harness directories
+.install-anything/
 .enlighten/
 cache/
 .agents/

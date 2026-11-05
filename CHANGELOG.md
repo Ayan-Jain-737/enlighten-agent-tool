@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-11-05
+
+### Changed
+- 🚀 **Full Project Rename & Refactor**:
+  - Renamed package to **`install-anything-skill`** (deprecated legacy `enlighten-agent-tool`).
+  - Renamed primary CLI executable to `install-anything` (with backward-compatible aliases).
+  - Renamed skills to `install-anything`, `install-anything-installer`, and `install-anything-uninstaller`.
+  - Renamed slash command to `/install-anything`.
+  - Renamed state directory to `~/.install-anything` with seamless migration fallback from `~/.enlighten`.
+  - Refactored core classes to `InstallAnythingCLI` and `InstallAnythingScanner` (aliasing legacy classes for compatibility).
+  - Cleaned up all environment variable checks to prefer `INSTALL_ANYTHING_*` prefixes.
+
+---
+
 ## [1.1.0] - 2026-11-04
 
 ### Added

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * skill-finder.js
- * Skill & Tool Discovery Engine for Enlighten
+ * Skill & Tool Discovery Engine for install-anything
  * Searches skills.sh registry, curated index, and local installed skills
  */
 
@@ -194,11 +194,14 @@ class SkillFinder {
       } catch {}
     }
 
-    // 2. Check ~/.enlighten/cache/installed.json
-    const enlightenInstalled = path.join(this.homedir, '.enlighten', 'cache', 'installed.json');
-    if (fs.existsSync(enlightenInstalled)) {
+    // 2. Check ~/.install-anything/cache/installed.json (and fallback to legacy ~/.enlighten)
+    const installAnythingInstalled = path.join(this.homedir, '.install-anything', 'cache', 'installed.json');
+    const legacyInstalled = path.join(this.homedir, '.enlighten', 'cache', 'installed.json');
+    const registryPath = fs.existsSync(installAnythingInstalled) ? installAnythingInstalled : legacyInstalled;
+
+    if (fs.existsSync(registryPath)) {
       try {
-        const data = JSON.parse(fs.readFileSync(enlightenInstalled, 'utf8'));
+        const data = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
         if (Array.isArray(data.installations)) {
           for (const item of data.installations) {
             installed.set(item.identifier.toLowerCase(), {
@@ -532,7 +535,7 @@ class SkillFinder {
    */
   formatOutput(results, query = '') {
     if (results.length === 0) {
-      return `\n🔍 No skills or tools found for "${query}".\n   💡 You can still install any GitHub repository with:\n      enlighten install <owner/repo>\n`;
+      return `\n🔍 No skills or tools found for "${query}".\n   💡 You can still install any GitHub repository with:\n      install-anything install <owner/repo>\n`;
     }
 
     let out = `\n🔍 Discovered Skills & Tools for "${query}":\n`;
@@ -551,12 +554,12 @@ class SkillFinder {
       if (item.isInstalled) {
         out += `   ✨ \x1b[32mInstalled & ready in your active agent harness\x1b[0m\n`;
       } else {
-        out += `   🚀 \x1b[36menlighten install ${item.source}\x1b[0m\n`;
+        out += `   🚀 \x1b[36minstall-anything install ${item.source}\x1b[0m\n`;
       }
     });
 
     out += '\n' + '─'.repeat(60) + '\n';
-    out += '💡 Run "enlighten install <source>" to install and configure any tool above for your agent.\n';
+    out += '💡 Run "install-anything install <source>" to install and configure any tool above for your agent.\n';
     return out;
   }
 }

@@ -19,7 +19,9 @@
   "author": "Ayan-Jain-737",
   "license": "MIT",
   "bin": {
-    "enlighten": "bin/enlighten"
+    "install-anything": "bin/install-anything",
+    "install-anything-skill": "bin/install-anything",
+    "enlighten": "bin/install-anything"
   },
   "files": [
     "bin/",
@@ -35,9 +37,9 @@
     "postinstall": "node scripts/postinstall.js",
     "install": "node scripts/postinstall.js",
     "test": "node tests/test-scanner.js && node tests/test-skills.js && node tests/test-finder.js && node tests/test-lifecycle.js",
-    "find": "node bin/enlighten find",
-    "diagnose": "node bin/enlighten diagnose",
-    "help": "node bin/enlighten help"
+    "find": "node bin/install-anything find",
+    "diagnose": "node bin/install-anything diagnose",
+    "help": "node bin/install-anything help"
   },
   "engines": {
     "node": ">=18.0.0"

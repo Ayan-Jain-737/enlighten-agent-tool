@@ -5,6 +5,9 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-lightgreen.svg)](https://nodejs.org/)
 [![Keywords](https://img.shields.io/badge/-GitHub-lightgray.svg?logo=github)](https://github.com/Ayan-Jain-737/install-anything-skill)
 
+> [!NOTE]
+> **Package Renamed & Migration**: This package was formerly published as `enlighten-agent-tool`. It has been renamed and upgraded to **`install-anything-skill`** (CLI: `install-anything`). The previous package `enlighten-agent-tool` is deprecated.
+
 <div align="center">
 
 ![install-anything-skill Preview](https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/assets/preview.png)
@@ -13,13 +16,13 @@
 
 ## Universal GitHub Repository & Skill Installer for AI Agents
 
-**Enlighten** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in your active agent's skills folder, discovers community skills across the open registry, and turns **any GitHub repository** into an immediately executable tool for your agent—compiling binaries, synthesizing skill wrappers, and scoping changes cleanly to your active agent.
+**install-anything** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in your active agent's skills folder, discovers community skills across the open registry, and turns **any GitHub repository** into an immediately executable tool for your agent—compiling binaries, synthesizing skill wrappers, and scoping changes cleanly to your active agent.
 
 <div align="center">
 
 | ✅ Core Capabilities | 🔧 Platform Support | 🌐 Build & Package Managers |
 |----------------------|---------------------|-----------------------------|
-| **Built-in Skill Discovery** (`enlighten find`) | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
+| **Built-in Skill Discovery** (`install-anything find`) | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
 | **Active-Agent Scoping** (Zero ghost folders) | **Open Agents** (`~/.agents/skills/`) | pip, uv, poetry, pipenv |
 | **Auto-Synthesis for Repos without SKILL.md** | **Claude Code** (`~/.claude/skills/`) | cargo (Rust compilation) |
 | **README-First Intelligence** | **Hermes** (`~/.hermes/skills/`) | go build, go install |
@@ -30,9 +33,9 @@
 
 ---
 
-## 🆚 Head-to-Head: Enlighten vs Traditional `npx skills`
+## 🆚 Head-to-Head: install-anything vs Traditional `npx skills`
 
-| Capability | Traditional Skills CLI (`npx skills`) | Enlighten (`install-anything-skill`) |
+| Capability | Traditional Skills CLI (`npx skills`) | install-anything (`install-anything-skill`) |
 | :--- | :--- | :--- |
 | **Any GitHub Repository** | ❌ Fails if not pre-packaged as a skill | ✅ **Works on ANY public or local repo** |
 | **Repos without `SKILL.md`** | ❌ Cannot install | ✅ **Auto-synthesizes skill wrapper** |
@@ -48,7 +51,7 @@
 
 ## 🚀 1-Command Installation
 
-Anyone can install Enlighten in a single command using any of these methods:
+Anyone can install install-anything in a single command using any of these methods:
 
 ### Method 1: Universal Shell One-Liner (Recommended)
 ```bash
@@ -73,9 +76,9 @@ cd install-anything-skill
 ```
 
 ### What Happens on Installation:
-- ✅ Links the `enlighten` executable directly to `~/.local/bin/enlighten` (in standard system PATH).
-- ✅ Registers the `enlighten`, `enlighten-installer`, and `enlighten-uninstaller` skills into your active agent folder (e.g., `~/.gemini/skills/`) and global canonical storage (`~/.agents/skills/`), avoiding unwanted folders for other unused agents.
-- ✅ Installs slash command `/enlighten` for supported agents (Claude Code, Hermes).
+- ✅ Links the `install-anything` executable directly to `~/.local/bin/install-anything` (with aliases `install-anything-skill` and `enlighten`).
+- ✅ Registers `install-anything`, `install-anything-installer`, and `install-anything-uninstaller` skills into your active agent folder (e.g., `~/.gemini/skills/`) and global canonical storage (`~/.agents/skills/`), avoiding unwanted folders for other unused agents.
+- ✅ Installs slash command `/install-anything` for supported agents (Claude Code, Hermes).
 - ✅ Updates `~/.agents/.skill-lock.json`.
 
 ---
@@ -84,57 +87,57 @@ cd install-anything-skill
 
 ```bash
 # 1. Discover skills & CLI tools across the open ecosystem
-enlighten find react
-enlighten find testing
-enlighten find --json
+install-anything find react
+install-anything find testing
+install-anything find --json
 
 # 2. Install any GitHub repository (cleanly scoped to active agent & global store)
-enlighten install vercel-labs/agent-skills
+install-anything install vercel-labs/agent-skills
 
 # Install by full URL
-enlighten install https://github.com/affaan-m/ECC
+install-anything install https://github.com/affaan-m/ECC
 
 # Explicitly target a specific agent harness
-enlighten install https://github.com/user/repo --agent gemini
+install-anything install https://github.com/user/repo --agent gemini
 
 # Preview installation without making changes (dry-run)
-enlighten install https://github.com/user/repo --dry-run
+install-anything install https://github.com/user/repo --dry-run
 
 # Output machine-readable JSON for agent consumption
-enlighten install https://github.com/user/repo --json
+install-anything install https://github.com/user/repo --json
 
 # 3. Diagnose repository before installing
-enlighten diagnose https://github.com/user/repo
+install-anything diagnose https://github.com/user/repo
 
 # 4. List all managed repositories, binaries, and registered skills
-enlighten list-installed
+install-anything list-installed
 
 # 5. Safely remove a repository, unregister skills, and unlink binaries
-enlighten uninstall <identifier> --force
+install-anything uninstall <identifier> --force
 ```
 
 ### Using Inside Agent Conversations
-Any AI agent that has loaded the `enlighten` skill can run:
+Any AI agent that has loaded the `install-anything` skill can run:
 ```bash
-/enlighten find react
-/enlighten install https://github.com/user/repo
+/install-anything find react
+/install-anything install https://github.com/user/repo
 ```
 or execute via the terminal tool:
 ```bash
-enlighten find <query>
-enlighten install <repo-url>
+install-anything find <query>
+install-anything install <repo-url>
 ```
 
 ---
 
 ## 🧠 How Auto-Registration & Active Scoping Works
 
-When an agent or developer runs `enlighten install <repo-url>`:
+When an agent or developer runs `install-anything install <repo-url>`:
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │ 1. Clone / Fetch Repository                            │
-│    Cloned into ~/.enlighten/repos/<owner>/<repo>       │
+│    Cloned into ~/.install-anything/repos/<owner>/<repo>│
 └──────────────────────────┬─────────────────────────────┘
                            │
 ┌──────────────────────────▼─────────────────────────────┐
@@ -172,13 +175,13 @@ When an agent or developer runs `enlighten install <repo-url>`:
 
 | Command | Description |
 |---------|-------------|
-| `enlighten find <query>` | Discover agent skills, packages, and CLI tool repos (e.g., `enlighten find react`) |
-| `enlighten install <url>` | Clone repo, compile binaries, register skills for active agent & global store |
-| `enlighten install <url> --agent <name>` | Explicitly target an agent harness (e.g. `gemini`, `claude`, `codex`) |
-| `enlighten diagnose <url>` | Analyze repository without installing (README guide, languages, frameworks, skills) |
-| `enlighten list-installed` | Show all managed installations, exposed binaries, and registered skills |
-| `enlighten uninstall <id> --force` | Safe removal of repository, binaries (`~/.local/bin`), and registered skills |
-| `enlighten --help` | Show command line help and options |
+| `install-anything find <query>` | Discover agent skills, packages, and CLI tool repos (e.g., `install-anything find react`) |
+| `install-anything install <url>` | Clone repo, compile binaries, register skills for active agent & global store |
+| `install-anything install <url> --agent <name>` | Explicitly target an agent harness (e.g. `gemini`, `claude`, `codex`) |
+| `install-anything diagnose <url>` | Analyze repository without installing (README guide, languages, frameworks, skills) |
+| `install-anything list-installed` | Show all managed installations, exposed binaries, and registered skills |
+| `install-anything uninstall <id> --force` | Safe removal of repository, binaries (`~/.local/bin`), and registered skills |
+| `install-anything --help` | Show command line help and options |
 
 ---
 
@@ -188,8 +191,8 @@ When an agent or developer runs `enlighten install <repo-url>`:
 |-----------------|------------------|--------------------------------|
 | **Antigravity / Gemini** | `~/.gemini/skills/` | Automatic runtime detection (`ANTIGRAVITY_AGENT`); zero pollution to unused agents |
 | **Open Agents** | `~/.agents/skills/` & `.skill-lock.json` | Canonical global store (`npx skills` compatible) |
-| **Claude Code** | `~/.claude/skills/` | Skills directory & `~/.claude/commands/enlighten.md` (`/enlighten`) |
-| **Hermes** | `~/.hermes/skills/` | Skills directory & `~/.hermes/commands/enlighten.md` (`/enlighten`) |
+| **Claude Code** | `~/.claude/skills/` | Skills directory & `~/.claude/commands/install-anything.md` (`/install-anything`) |
+| **Hermes** | `~/.hermes/skills/` | Skills directory & `~/.hermes/commands/install-anything.md` (`/install-anything`) |
 | **OpenCode** | `~/.config/opencode/skills/` | Config plugin / skill directory |
 | **Codex** | `~/.codex/skills/` | Targeted on demand (`--agent codex`) |
 | **Cursor** | `~/.cursor/skills/` | Targeted on demand (`--agent cursor`) |
@@ -202,12 +205,12 @@ When an agent or developer runs `enlighten install <repo-url>`:
 ```
 install-anything-skill/
 ├── bin/
-│   └── enlighten                    # CLI executable (find, install, diagnose, list, uninstall)
+│   └── install-anything             # CLI executable (find, install, diagnose, list, uninstall)
 ├── skills/
-│   ├── enlighten/                   # Primary agent skill definition
+│   ├── install-anything/            # Primary agent skill definition
 │   │   ├── SKILL.md
 │   │   └── scripts/dispatch.js      # Resilient CLI dispatcher
-│   ├── enlighten-installer/         # Scanner, adapter, finder & skill registry engine
+│   ├── install-anything-installer/  # Scanner, adapter, finder & skill registry engine
 │   │   ├── SKILL.md
 │   │   └── scripts/
 │   │       ├── scan-repo.js         # Deep repo & skill scanner
@@ -215,10 +218,10 @@ install-anything-skill/
 │   │       ├── skill-registry.js    # Multi-harness active-scoped registration manager
 │   │       ├── adapt-install.js     # OS & harness command adapter
 │   │       └── readme-guide.js      # README-first instruction parser
-│   └── enlighten-uninstaller/       # Safe removal skill
+│   └── install-anything-uninstaller/# Safe removal skill
 │       └── SKILL.md
 ├── commands/
-│   └── enlighten.md                 # Agent slash command definition
+│   └── install-anything.md          # Agent slash command definition
 ├── scripts/
 │   ├── install.sh                   # Universal 1-command curl installer
 │   ├── install.js                   # Node.js self-registration script
@@ -227,13 +230,6 @@ install-anything-skill/
 │   ├── test-scanner.js              # Scanner unit tests
 │   ├── test-skills.js               # Multi-harness skill registration tests
 │   ├── test-finder.js               # SkillFinder & discovery engine tests
-│   └── test-lifecycle.js            # End-to-end install/uninstall lifecycle tests
-├── package.json
-└── README.md
-```
-├── tests/
-│   ├── test-scanner.js              # Scanner unit tests
-│   ├── test-skills.js               # Multi-harness skill registration tests
 │   └── test-lifecycle.js            # End-to-end install/uninstall lifecycle tests
 ├── package.json
 └── README.md

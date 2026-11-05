@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * enlighten dispatcher - Called by /enlighten slash command or directly by agent
- * Routes to EnlightCLI
+ * install-anything dispatcher - Called by /install-anything slash command or directly by agent
+ * Routes to InstallAnythingCLI
  */
 
 const { spawn } = require('child_process');
@@ -11,18 +11,24 @@ const os = require('os');
 
 function resolveCliPath() {
   // 1. Check local bin in PATH
-  const localBin = path.join(os.homedir(), '.local', 'bin', 'enlighten');
+  const localBin = path.join(os.homedir(), '.local', 'bin', 'install-anything');
   if (fs.existsSync(localBin)) return localBin;
 
+  const legacyBin = path.join(os.homedir(), '.local', 'bin', 'enlighten');
+  if (fs.existsSync(legacyBin)) return legacyBin;
+
   // 2. Check project root relative to this file
-  const candidate = path.resolve(__dirname, '..', '..', '..', 'bin', 'enlighten');
+  const candidate = path.resolve(__dirname, '..', '..', '..', 'bin', 'install-anything');
   if (fs.existsSync(candidate)) return candidate;
 
-  // 3. Check ~/.enlighten/install-anything-skill/bin/enlighten
-  const defaultClone = path.join(os.homedir(), '.enlighten', 'install-anything-skill', 'bin', 'enlighten');
+  // 3. Check ~/.install-anything/install-anything-skill/bin/install-anything
+  const defaultClone = path.join(os.homedir(), '.install-anything', 'install-anything-skill', 'bin', 'install-anything');
   if (fs.existsSync(defaultClone)) return defaultClone;
 
-  return 'enlighten';
+  const legacyClone = path.join(os.homedir(), '.enlighten', 'install-anything-skill', 'bin', 'install-anything');
+  if (fs.existsSync(legacyClone)) return legacyClone;
+
+  return 'install-anything';
 }
 
 function detectCallerHarness() {
@@ -65,12 +71,13 @@ function dispatch(args) {
   const cliPath = resolveCliPath();
   const caller = detectCallerHarness();
   const env = { ...process.env };
-  if (caller && !env.ENLIGHTEN_CALLER_HARNESS) {
+  if (caller && !env.INSTALL_ANYTHING_CALLER_HARNESS) {
+    env.INSTALL_ANYTHING_CALLER_HARNESS = caller;
     env.ENLIGHTEN_CALLER_HARNESS = caller;
   }
 
-  if (cliPath === 'enlighten') {
-    const cli = spawn('enlighten', args, {
+  if (cliPath === 'install-anything' || cliPath === 'enlighten') {
+    const cli = spawn(cliPath, args, {
       stdio: 'inherit',
       env
     });

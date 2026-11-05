@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * enlighten-installer: Core Scanner
+ * install-anything-installer: Core Scanner
  * Standalone repository scanner - no external dependencies
  * Detects language, framework, dependencies, profiles, AND install methods
  */
@@ -10,10 +10,17 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { SkillRegistry } = require('./skill-registry');
 
-class EnlightenScanner {
+class InstallAnythingScanner {
   constructor(options = {}) {
-    this.cacheDir = process.env.ENLIGHTEN_CACHE_DIR || path.join(require('os').homedir(), '.enlighten', 'cache');
-    this.timeout = parseInt(process.env.ENLIGHTEN_TIMEOUT || '300');
+    const homedir = require('os').homedir();
+    const defaultCache = fs.existsSync(path.join(homedir, '.install-anything'))
+      ? path.join(homedir, '.install-anything', 'cache')
+      : path.join(homedir, '.enlighten', 'cache');
+
+    this.cacheDir = process.env.INSTALL_ANYTHING_CACHE_DIR ||
+                    process.env.ENLIGHTEN_CACHE_DIR ||
+                    defaultCache;
+    this.timeout = parseInt(process.env.INSTALL_ANYTHING_TIMEOUT || process.env.ENLIGHTEN_TIMEOUT || '300');
     this.dryRun = options.dryRun || false;
   }
 
@@ -402,7 +409,7 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  const scanner = new EnlightenScanner();
+  const scanner = new InstallAnythingScanner();
   try {
     const result = scanner.scanRepo(repoPath);
     console.log(JSON.stringify(result, null, 2))
@@ -412,4 +419,7 @@ if (require.main === module) {
   }
 }
 
-module.exports = { EnlightenScanner };
+module.exports = {
+  InstallAnythingScanner,
+  EnlightenScanner: InstallAnythingScanner
+};

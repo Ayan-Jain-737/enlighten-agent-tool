@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * enlighten - Universal GitHub Repository & Skill Installer for AI Agent Harnesses
+ * install-anything - Universal GitHub Repository & Skill Installer for AI Agent Harnesses
  *
  * Workflow:
  *  Step 1: Check repository's README for the official installation guide (no heavy clone!)
@@ -13,26 +13,32 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 
-const { EnlightenScanner } = require('../skills/enlighten-installer/scripts/scan-repo');
-const { ScriptAdapter } = require('../skills/enlighten-installer/scripts/adapt-install');
-const { SkillRegistry } = require('../skills/enlighten-installer/scripts/skill-registry');
-const { ReadmeGuide } = require('../skills/enlighten-installer/scripts/readme-guide');
-const { SkillFinder } = require('../skills/enlighten-installer/scripts/skill-finder');
+const { InstallAnythingScanner, EnlightenScanner } = require('../skills/install-anything-installer/scripts/scan-repo');
+const { ScriptAdapter } = require('../skills/install-anything-installer/scripts/adapt-install');
+const { SkillRegistry } = require('../skills/install-anything-installer/scripts/skill-registry');
+const { ReadmeGuide } = require('../skills/install-anything-installer/scripts/readme-guide');
+const { SkillFinder } = require('../skills/install-anything-installer/scripts/skill-finder');
 
-class EnlightCLI {
+class InstallAnythingCLI {
   constructor(options = {}) {
-    let pkg = { version: '1.1.0' };
+    let pkg = { version: '1.1.2' };
     try {
       pkg = require('../package.json');
     } catch {}
     this.version = pkg.version;
     this.homedir = options.homedir || os.homedir();
-    this.enlightenDir = path.join(this.homedir, '.enlighten');
-    this.reposDir = path.join(this.enlightenDir, 'repos');
-    this.cacheDir = path.join(this.enlightenDir, 'cache');
+
+    // Prefer ~/.install-anything with fallback to legacy ~/.enlighten
+    const newDir = path.join(this.homedir, '.install-anything');
+    const legacyDir = path.join(this.homedir, '.enlighten');
+    this.stateDir = (!fs.existsSync(newDir) && fs.existsSync(legacyDir)) ? legacyDir : newDir;
+    this.enlightenDir = this.stateDir; // backward compatibility
+    this.reposDir = path.join(this.stateDir, 'repos');
+    this.cacheDir = path.join(this.stateDir, 'cache');
     this.installedRegistry = path.join(this.cacheDir, 'installed.json');
 
-    this.scanner = new EnlightenScanner({ dryRun: options.dryRun });
+    const ScannerClass = InstallAnythingScanner || EnlightenScanner;
+    this.scanner = new ScannerClass({ dryRun: options.dryRun });
     this.adapter = new ScriptAdapter(options);
     this.skillRegistry = new SkillRegistry({ homedir: this.homedir, dryRun: options.dryRun });
     this.readmeGuide = new ReadmeGuide();
@@ -42,7 +48,7 @@ class EnlightCLI {
   }
 
   ensureDirs() {
-    for (const dir of [this.enlightenDir, this.reposDir, this.cacheDir]) {
+    for (const dir of [this.stateDir, this.reposDir, this.cacheDir]) {
       if (!fs.existsSync(dir)) {
         try {
           fs.mkdirSync(dir, { recursive: true });
@@ -233,7 +239,7 @@ class EnlightCLI {
     const norm = this.normalizeRepoUrl(repoInput);
 
     if (!isJson) {
-      console.log(`\n✨ Enlighten v${this.version}`);
+      console.log(`\n✨ install-anything v${this.version}`);
       console.log(`📦 Target Repository: ${norm.url}`);
       console.log(`🆔 Identifier: ${norm.identifier}\n`);
     }
@@ -452,7 +458,7 @@ class EnlightCLI {
   }
 
   /**
-   * Safe removal of any enlighten-managed repository and its registered skills
+   * Safe removal of any install-anything-managed repository and its registered skills
    */
   uninstall(identifierInput, options = {}) {
     const isJson = options.json;
@@ -472,7 +478,7 @@ class EnlightCLI {
     }
 
     if (!isJson) {
-      console.log(`\n🗑️  Enlighten Uninstaller`);
+      console.log(`\n🗑️  install-anything Uninstaller`);
       console.log(`   Removing: ${item.identifier} (${item.repo_url})`);
     }
 
@@ -483,7 +489,7 @@ class EnlightCLI {
 
     if (!options.force && !isJson) {
       console.log(`\n⚠️  To safely remove this repository and all its registered skills, run:`);
-      console.log(`    enlighten uninstall ${item.identifier} --force\n`);
+      console.log(`    install-anything uninstall ${item.identifier} --force\n`);
       return { status: 'confirmation_required' };
     }
 
@@ -528,10 +534,10 @@ class EnlightCLI {
       return installed;
     }
 
-    console.log(`\n📋 Enlighten Installed Repositories (${installed.length})\n`);
+    console.log(`\n📋 Installed Repositories (${installed.length})\n`);
     if (installed.length === 0) {
       console.log(`No repositories currently installed.`);
-      console.log(`Use "enlighten install <repo-url>" to install repositories and register skills.\n`);
+      console.log(`Use "install-anything install <repo-url>" to install repositories and register skills.\n`);
       return installed;
     }
 
@@ -614,7 +620,7 @@ class EnlightCLI {
 // CLI Execution
 if (require.main === module) {
   const args = process.argv.slice(2);
-  const cli = new EnlightCLI({
+  const cli = new InstallAnythingCLI({
     dryRun: args.includes('--dry-run')
   });
 
@@ -642,18 +648,18 @@ if (require.main === module) {
 
   if (filteredArgs.length === 0 || args.includes('--help') || args.includes('-h') || filteredArgs[0] === 'help') {
     console.log(`
-Enlighten v${cli.version} - Universal AI Agent Repository & Skill Installer
+install-anything v${cli.version} - Universal AI Agent Repository & Skill Installer
 
 USAGE:
-    enlighten find <query> [--json]
-    enlighten install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
-    enlighten diagnose <repo-url> [--json]
-    enlighten list-installed [--json]
-    enlighten uninstall <identifier> [--force] [--dry-run] [--json]
-    enlighten --help
+    install-anything find <query> [--json]
+    install-anything install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
+    install-anything diagnose <repo-url> [--json]
+    install-anything list-installed [--json]
+    install-anything uninstall <identifier> [--force] [--dry-run] [--json]
+    install-anything --help
 
 COMMANDS:
-    find <query>        Discover agent skills, packages, and CLI tool repos (e.g. enlighten find react)
+    find <query>        Discover agent skills, packages, and CLI tool repos (e.g. install-anything find react)
     install <url>       Check README for install guide, execute suggested steps,
                         and register skills for the active agent harness and global store.
     diagnose <url>      Check README & repository without installing.
@@ -687,7 +693,7 @@ WORKFLOW:
 
       case 'install':
         if (!target) {
-          console.error('Error: repository URL or shorthand required (e.g., enlighten install owner/repo)');
+          console.error('Error: repository URL or shorthand required (e.g., install-anything install owner/repo)');
           process.exit(1);
         }
         await cli.install(target, {
@@ -718,17 +724,20 @@ WORKFLOW:
       case 'remove':
       case 'rm':
         if (!target) {
-          console.error('Error: identifier required (use "enlighten list-installed" to see identifiers)');
+          console.error('Error: identifier required (use "install-anything list-installed" to see identifiers)');
           process.exit(1);
         }
         cli.uninstall(target, { json: isJson, force: isForce, dryRun: isDryRun });
         break;
 
       default:
-        console.error(`Unknown command: "${cmd}". Run "enlighten --help" for usage.`);
+        console.error(`Unknown command: "${cmd}". Run "install-anything --help" for usage.`);
         process.exit(1);
     }
   })();
 }
 
-module.exports = { EnlightCLI };
+module.exports = {
+  InstallAnythingCLI,
+  EnlightCLI: InstallAnythingCLI
+};

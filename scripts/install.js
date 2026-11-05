@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * install.js - Self-Registering Skill Installer for install-anything-skill
- * Automatically registers Enlighten in all agent harnesses (Antigravity, Open Agents,
+ * Automatically registers install-anything in all agent harnesses (Antigravity, Open Agents,
  * Claude Code, Hermes, OpenCode, Codex, Cursor, Zed) and links CLI binary.
  */
 
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { SkillRegistry } = require('../skills/enlighten-installer/scripts/skill-registry');
+const { SkillRegistry } = require('../skills/install-anything-installer/scripts/skill-registry');
 
 class SelfInstaller {
   constructor() {
@@ -22,10 +22,10 @@ class SelfInstaller {
 
   install() {
     console.log('\n========================================================');
-    console.log('✨ Installing Enlighten Agent Tool & Skills');
+    console.log('✨ Installing install-anything Skills & CLI');
     console.log('========================================================\n');
 
-    // 1. Link CLI binary to ~/.local/bin/enlighten
+    // 1. Link CLI binary to ~/.local/bin/install-anything
     this.linkBinary();
 
     // 2. Discover and register skills from this project
@@ -38,11 +38,11 @@ class SelfInstaller {
     this.updateSkillLock();
 
     console.log('\n========================================================');
-    console.log('🎉 Enlighten Skills Registration Complete!');
+    console.log('🎉 install-anything Skills Registration Complete!');
     console.log('========================================================\n');
     console.log('Available Commands & Skills:');
-    console.log('  • CLI: enlighten install <repo-url>');
-    console.log('  • Slash Command: /enlighten install <repo-url>');
+    console.log('  • CLI: install-anything install <repo-url>');
+    console.log('  • Slash Command: /install-anything install <repo-url>');
     console.log('  • Registered Skills:');
     this.installedSkills.forEach(s => {
       console.log(`    - ${s.name} (${s.harnesses.length} agent harnesses)`);
@@ -58,29 +58,37 @@ class SelfInstaller {
   }
 
   linkBinary() {
-    const binSrc = path.join(this.projectDir, 'bin', 'enlighten');
+    const binSrc = path.join(this.projectDir, 'bin', 'install-anything');
     const localBin = path.join(this.homedir, '.local', 'bin');
-    const binDest = path.join(localBin, 'enlighten');
+    const binDest = path.join(localBin, 'install-anything');
+    const aliasDest = path.join(localBin, 'install-anything-skill');
+    const legacyDest = path.join(localBin, 'enlighten');
 
     try {
       if (!fs.existsSync(localBin)) {
         fs.mkdirSync(localBin, { recursive: true });
       }
-      if (fs.existsSync(binDest) || fs.lstatSync(binDest, { throwIfNoEntry: false })) {
-        fs.rmSync(binDest, { force: true });
-      }
-      fs.symlinkSync(binSrc, binDest);
       fs.chmodSync(binSrc, 0o755);
+
+      for (const dest of [binDest, aliasDest, legacyDest]) {
+        try {
+          if (fs.existsSync(dest) || fs.lstatSync(dest, { throwIfNoEntry: false })) {
+            fs.rmSync(dest, { force: true });
+          }
+          fs.symlinkSync(binSrc, dest);
+        } catch {}
+      }
+
       this.binaryLinked = true;
-      console.log(`✅ Linked CLI executable: ~/.local/bin/enlighten -> ${binSrc}`);
+      console.log(`✅ Linked CLI executable: ~/.local/bin/install-anything -> ${binSrc}`);
     } catch (e) {
-      console.log(`⚠️  Could not link ~/.local/bin/enlighten: ${e.message}`);
+      console.log(`⚠️  Could not link ~/.local/bin/install-anything: ${e.message}`);
     }
   }
 
   registerProjectSkills() {
     const skillsDir = path.join(this.projectDir, 'skills');
-    const skillNames = ['enlighten', 'enlighten-installer', 'enlighten-uninstaller'];
+    const skillNames = ['install-anything', 'install-anything-installer', 'install-anything-uninstaller'];
     const isAllHarnesses = process.argv.includes('--all') || process.argv.includes('--all-agents');
 
     for (const name of skillNames) {
@@ -90,7 +98,7 @@ class SelfInstaller {
         const parsed = this.registry.parseSkillMd(skillFile) || {};
         const skillInfo = {
           name,
-          description: parsed.description || 'Enlighten agent skill',
+          description: parsed.description || 'install-anything agent skill',
           version: parsed.version || '2.0.0',
           skillDir: dir,
           skillFilePath: skillFile,

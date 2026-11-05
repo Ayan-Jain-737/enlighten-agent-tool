@@ -60,7 +60,11 @@ class SkillRegistry {
     if (explicit) return this.normalizeHarnessId(explicit);
 
     // 2. Explicit environment variables
-    const envExplicit = process.env.ENLIGHTEN_CALLER_HARNESS ||
+    const envExplicit = process.env.INSTALL_ANYTHING_CALLER_HARNESS ||
+                        process.env.INSTALL_ANYTHING_TARGET_HARNESS ||
+                        process.env.INSTALL_ANYTHING_HARNESS ||
+                        process.env.INSTALL_ANYTHING_AGENT ||
+                        process.env.ENLIGHTEN_CALLER_HARNESS ||
                         process.env.ENLIGHTEN_TARGET_HARNESS ||
                         process.env.ENLIGHTEN_HARNESS ||
                         process.env.ENLIGHTEN_AGENT;
@@ -493,7 +497,7 @@ class SkillRegistry {
     const description = repoInfo.description ||
       `Provides tools, libraries, or commands from repository ${repoInfo.name || path.basename(repoDir)}`;
 
-    const skillDir = path.join(repoDir, '.enlighten-skill');
+    const skillDir = path.join(repoDir, '.install-anything-skill');
     if (!fs.existsSync(skillDir)) {
       fs.mkdirSync(skillDir, { recursive: true });
     }
@@ -535,7 +539,7 @@ ${repoInfo.readmeSummary ? `## Summary from README\n${repoInfo.readmeSummary}\n`
       version: '1.0.0',
       skillDir,
       skillFilePath: skillMdPath,
-      relativePath: '.enlighten-skill',
+      relativePath: '.install-anything-skill',
       generated: true
     };
   }

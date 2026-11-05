@@ -2,7 +2,7 @@
 
 ## 🚀 1-Command Installation
 
-Anyone can install Enlighten in one command:
+Anyone can install install-anything in one command:
 
 ```bash
 # 1-command curl installer (installs CLI to ~/.local/bin and registers skills across all harnesses)
@@ -21,22 +21,22 @@ npm install -g install-anything-skill
 
 ---
 
-## ⚡ Using Enlighten in Agent Harnesses
+## ⚡ Using install-anything in Agent Harnesses
 
-Once installed, Enlighten is registered in all agent harnesses:
-- **Antigravity / Gemini**: `~/.gemini/skills/enlighten`
-- **Open Agents**: `~/.agents/skills/enlighten`
-- **Claude Code**: `~/.claude/skills/enlighten` & `/enlighten` command
-- **Hermes**: `~/.hermes/skills/enlighten` & `/enlighten` command
-- **OpenCode**: `~/.config/opencode/skills/enlighten`
+Once installed, install-anything is registered in all agent harnesses:
+- **Antigravity / Gemini**: `~/.gemini/skills/install-anything`
+- **Open Agents**: `~/.agents/skills/install-anything`
+- **Claude Code**: `~/.claude/skills/install-anything` & `/install-anything` command
+- **Hermes**: `~/.hermes/skills/install-anything` & `/install-anything` command
+- **OpenCode**: `~/.config/opencode/skills/install-anything`
 - **Codex / Cursor / Zed**: global skills
 
 Ask your agent:
-> *"Use enlighten to install https://github.com/vercel-labs/agent-skills"*
+> *"Use install-anything to install https://github.com/vercel-labs/agent-skills"*
 
 Or run directly:
 ```bash
-enlighten install vercel-labs/agent-skills
+install-anything install vercel-labs/agent-skills
 ```
 
 ---
@@ -45,46 +45,48 @@ enlighten install vercel-labs/agent-skills
 
 | Command | Description |
 |---------|-------------|
-| `enlighten install <url>` | Download repository, register skills globally, run setup |
-| `enlighten diagnose <url>` | Scan repository (language, framework, skills, binaries) |
-| `enlighten list-installed` | List all installed repositories and registered skills |
-| `enlighten uninstall <id> --force` | Safe removal of repository, binaries, and registered skills |
-| `enlighten --help` | Show command line options |
+| `install-anything install <url>` | Download repository, register skills globally, run setup |
+| `install-anything diagnose <url>` | Scan repository (language, framework, skills, binaries) |
+| `install-anything list-installed` | List all installed repositories and registered skills |
+| `install-anything uninstall <id> --force` | Safe removal of repository, binaries, and registered skills |
+| `install-anything --help` | Show command line options |
 
-### Examples
+---
+
+## 💡 Quick Examples
 
 ```bash
-# Install a multi-skill repository (all skills registered globally)
-enlighten install vercel-labs/agent-skills
+# Install a skill repo by shorthand
+install-anything install vercel-labs/agent-skills
 
-# Install a tool repository (auto-synthesizes skill and exposes binaries)
-enlighten install Graphify-Labs/graphify
+# Install a tool repository
+install-anything install Graphify-Labs/graphify
 
-# Preview what would happen (dry-run)
-enlighten install https://github.com/user/repo --dry-run
+# Dry run (see what would happen without making changes)
+install-anything install https://github.com/user/repo --dry-run
 
-# Output JSON for agent automation
-enlighten install https://github.com/user/repo --json
+# Output JSON for agents
+install-anything install https://github.com/user/repo --json
 
-# Analyze before installing
-enlighten diagnose https://github.com/vercel/next.js
+# Diagnose a repository
+install-anything diagnose https://github.com/vercel/next.js
 
-# List all installations
-enlighten list-installed
+# View installed repositories
+install-anything list-installed
 
-# Safely uninstall
-enlighten uninstall vercel-labs-agent-skills --force
+# Remove an installation
+install-anything uninstall vercel-labs-agent-skills --force
 ```
 
 ---
 
-## 🧠 What Happens Behind the Scenes
+## 🔍 How it Works
 
-When an agent runs `enlighten install <repo-url>`:
-1. Clones the repository to `~/.enlighten/repos/<owner>/<repo>`.
-2. Scans for any `SKILL.md` files (in root, `skills/`, `.agents/skills/`, etc.).
-3. Registers every found skill into all global agent skill directories (`~/.gemini/skills/`, `~/.agents/skills/`, `~/.claude/skills/`, `~/.hermes/skills/`, etc.).
-4. If no skills exist, generates a tailored `SKILL.md` agent skill wrapper for the tool.
-5. Runs package manager and build steps as suggested by the repo (`npm install`, `pip install`, `cargo build`, etc.).
-6. Links tool binaries into `~/.local/bin/`.
-7. Records the installation in `~/.enlighten/cache/installed.json` and updates `~/.agents/.skill-lock.json`.
+When an agent runs `install-anything install <repo-url>`:
+1. Clones the repository to `~/.install-anything/repos/<owner>/<repo>`.
+2. Scans for language, framework, dependencies, and existing `SKILL.md` files.
+3. Automatically registers discovered skills into `~/.gemini/skills/` (for Antigravity) and canonical `~/.agents/skills/`.
+4. If no skills exist, auto-synthesizes a tailored `SKILL.md` tool wrapper.
+5. Runs suggested install commands (`npm install`, `pip install`, `cargo build`, etc.).
+6. Symlinks any tool binaries to `~/.local/bin/`.
+7. Records the installation in `~/.install-anything/cache/installed.json` and updates `~/.agents/.skill-lock.json`.

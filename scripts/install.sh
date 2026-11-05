@@ -9,11 +9,11 @@
 set -e
 
 REPO_URL="https://github.com/Ayan-Jain-737/install-anything-skill.git"
-INSTALL_DIR="${HOME}/.enlighten/install-anything-skill"
+INSTALL_DIR="${HOME}/.install-anything/install-anything-skill"
 
 echo ""
 echo "⚡ ======================================================"
-echo "⚡ Install Anything Skill - Universal Installer"
+echo "⚡ install-anything - Universal Installer"
 echo "⚡ ======================================================"
 echo ""
 
@@ -43,7 +43,7 @@ if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/../package.json" ]; then
     echo "📦 Installing from local repository: ${PROJECT_DIR}"
 else
     PROJECT_DIR="$INSTALL_DIR"
-    echo "📦 Cloning Enlighten repository to: ${PROJECT_DIR}..."
+    echo "📦 Cloning install-anything-skill repository to: ${PROJECT_DIR}..."
     mkdir -p "$(dirname "$PROJECT_DIR")"
     if [ -d "$PROJECT_DIR/.git" ]; then
         echo "   Updating existing installation..."
@@ -70,6 +70,6 @@ fi
 
 echo ""
 echo "✨ Installation finished successfully!"
-echo "   Test with: enlighten --help"
-echo "   Install any repo: enlighten install <repo-url>"
+echo "   Test with: install-anything --help"
+echo "   Install any repo: install-anything install <repo-url>"
 echo ""

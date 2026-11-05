@@ -10,7 +10,7 @@
 
 <div align="center">
 
-![install-anything-skill Preview](https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/assets/preview.png)
+![install-anything-skill Preview](assets/preview.png)
 
 </div>
 

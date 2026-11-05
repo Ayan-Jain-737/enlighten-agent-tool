@@ -1,8 +1,7 @@
 {
   "name": "install-anything-skill",
-  "version": "1.1.2",
+  "version": "1.0.0",
   "description": "Universal GitHub repository and skill installer for AI agent harnesses",
-  "main": "index.js",
   "keywords": [
     "github",
     "installer",
@@ -16,13 +15,26 @@
     "devops",
     "automation"
   ],
-  "author": "Ayan-Jain-737",
+  "homepage": "https://github.com/Ayan-Jain-737/install-anything-skill#readme",
+  "bugs": {
+    "url": "https://github.com/Ayan-Jain-737/install-anything-skill/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ayan-Jain-737/install-anything-skill.git"
+  },
   "license": "MIT",
+  "author": "Ayan-Jain-737",
+  "type": "commonjs",
+  "main": "index.js",
   "bin": {
     "ias": "bin/ias",
     "install-anything": "bin/install-anything",
     "install-anything-skill": "bin/install-anything",
     "enlighten": "bin/install-anything"
+  },
+  "directories": {
+    "test": "tests"
   },
   "files": [
     "bin/",
@@ -42,9 +54,8 @@
     "diagnose": "node bin/install-anything diagnose",
     "help": "node bin/install-anything help"
   },
+  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
-  },
-  "dependencies": {},
-  "devDependencies": {}
+  }
 }

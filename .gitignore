@@ -15,6 +15,7 @@ playwright-report/
 # Internal Developer & Non-User Files
 HANDOFF.md
 TECHNICAL_SPEC.md
+DEPRECATION.md
 scratch/
 temp/
 tmp/

@@ -51,6 +51,7 @@ brag-output*/
 # Netlify deployment and local state
 .netlify/
 netlify.toml
+assets/
 
 # Environment & credentials
 .env

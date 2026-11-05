@@ -20,6 +20,7 @@ README-VIDEO.md
 remotion.config.ts
 tsconfig.json
 scripts/*.mjs
+scripts/*.py
 
 # Internal Developer & Non-User Files
 HANDOFF.md

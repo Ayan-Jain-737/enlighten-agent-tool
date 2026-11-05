@@ -12,6 +12,15 @@ coverage/
 test-results/
 playwright-report/
 
+# Remotion Video Production Assets & Deliverables
+out/
+public/
+src/
+README-VIDEO.md
+remotion.config.ts
+tsconfig.json
+scripts/*.mjs
+
 # Internal Developer & Non-User Files
 HANDOFF.md
 TECHNICAL_SPEC.md

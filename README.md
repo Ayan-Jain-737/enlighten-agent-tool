@@ -10,7 +10,7 @@
 
 <div align="center">
 
-![install-anything-skill Preview](assets/preview.png)
+![install-anything-skill Preview](preview.png)
 
 </div>
 

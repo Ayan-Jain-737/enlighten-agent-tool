@@ -6,7 +6,7 @@
 [![Keywords](https://img.shields.io/badge/-GitHub-lightgray.svg?logo=github)](https://github.com/Ayan-Jain-737/install-anything-skill)
 
 > [!NOTE]
-> **Package Renamed & Migration**: This package was formerly published as `enlighten-agent-tool`. It has been renamed and upgraded to **`install-anything-skill`** (CLI: `install-anything`). The previous package `enlighten-agent-tool` is deprecated.
+> **Package Renamed & Migration**: This package was formerly published as `enlighten-agent-tool`. It has been renamed and upgraded to **`install-anything-skill`**, callable everywhere via the short acronym **`ias`** (and `install-anything`). The previous package `enlighten-agent-tool` is deprecated.
 
 <div align="center">
 
@@ -16,26 +16,26 @@
 
 ## Universal GitHub Repository & Skill Installer for AI Agents
 
-**install-anything** is an autonomous skill and repository installer for AI agent harnesses. It installs in **one command**, automatically registers itself in your active agent's skills folder, discovers community skills across the open registry, and turns **any GitHub repository** into an immediately executable tool for your agent—compiling binaries, synthesizing skill wrappers, and scoping changes cleanly to your active agent.
+**ias** (`install-anything-skill`) is an autonomous skill and repository installer for AI agent harnesses. Callable everywhere by the simple acronym **`ias`**, it installs in **one command**, automatically registers itself in your active agent's skills folder, discovers community skills across the open registry, and turns **any GitHub repository** into an immediately executable tool for your agent—compiling binaries, synthesizing skill wrappers, and scoping changes cleanly to your active agent.
 
 <div align="center">
 
 | ✅ Core Capabilities | 🔧 Platform Support | 🌐 Build & Package Managers |
 |----------------------|---------------------|-----------------------------|
-| **Built-in Skill Discovery** (`install-anything find`) | **Antigravity / Gemini** (`~/.gemini/skills/`) | npm, yarn, pnpm, bun |
-| **Active-Agent Scoping** (Zero ghost folders) | **Open Agents** (`~/.agents/skills/`) | pip, uv, poetry, pipenv |
-| **Auto-Synthesis for Repos without SKILL.md** | **Claude Code** (`~/.claude/skills/`) | cargo (Rust compilation) |
-| **README-First Intelligence** | **Hermes** (`~/.hermes/skills/`) | go build, go install |
-| **Executable Binary Symlinks** (`~/.local/bin`) | **OpenCode** (`~/.config/opencode/`) | gradle, maven |
+| **Built-in Skill Discovery** (`ias find`) | **Antigravity / Gemini** (`~/.gemini/skills/ias`) | npm, yarn, pnpm, bun |
+| **Active-Agent Scoping** (Zero ghost folders) | **Open Agents** (`~/.agents/skills/ias`) | pip, uv, poetry, pipenv |
+| **Auto-Synthesis for Repos without SKILL.md** | **Claude Code** (`~/.claude/skills/ias`) | cargo (Rust compilation) |
+| **README-First Intelligence** | **Hermes** (`~/.hermes/skills/ias`) | go build, go install |
+| **Executable Binary Symlinks** (`~/.local/bin/ias`) | **OpenCode** (`~/.config/opencode/`) | gradle, maven |
 | **Full Lifecycle & Safe Rollback** | **Codex**, **Cursor**, **Zed** | cmake, make |
 
 </div>
 
 ---
 
-## 🆚 Head-to-Head: install-anything vs Traditional `npx skills`
+## 🆚 Head-to-Head: ias vs Traditional `npx skills`
 
-| Capability | Traditional Skills CLI (`npx skills`) | install-anything (`install-anything-skill`) |
+| Capability | Traditional Skills CLI (`npx skills`) | ias (`install-anything-skill`) |
 | :--- | :--- | :--- |
 | **Any GitHub Repository** | ❌ Fails if not pre-packaged as a skill | ✅ **Works on ANY public or local repo** |
 | **Repos without `SKILL.md`** | ❌ Cannot install | ✅ **Auto-synthesizes skill wrapper** |
@@ -76,9 +76,9 @@ cd install-anything-skill
 ```
 
 ### What Happens on Installation:
-- ✅ Links the `install-anything` executable directly to `~/.local/bin/install-anything` (with aliases `install-anything-skill` and `enlighten`).
-- ✅ Registers `install-anything`, `install-anything-installer`, and `install-anything-uninstaller` skills into your active agent folder (e.g., `~/.gemini/skills/`) and global canonical storage (`~/.agents/skills/`), avoiding unwanted folders for other unused agents.
-- ✅ Installs slash command `/install-anything` for supported agents (Claude Code, Hermes).
+- ✅ Links the `ias` executable directly to `~/.local/bin/ias` (along with `install-anything`, `install-anything-skill`, and `enlighten`).
+- ✅ Registers `ias`, `install-anything`, `install-anything-installer`, and `install-anything-uninstaller` skills into your active agent folder (e.g., `~/.gemini/skills/ias`) and global canonical storage (`~/.agents/skills/`), avoiding unwanted folders for other unused agents.
+- ✅ Installs slash command `/ias` and `/install-anything` for supported agents (Claude Code, Hermes).
 - ✅ Updates `~/.agents/.skill-lock.json`.
 
 ---
@@ -87,45 +87,45 @@ cd install-anything-skill
 
 ```bash
 # 1. Discover skills & CLI tools across the open ecosystem
-install-anything find react
-install-anything find testing
-install-anything find --json
+ias find react
+ias find testing
+ias find --json
 
 # 2. Install any GitHub repository (cleanly scoped to active agent & global store)
-install-anything install vercel-labs/agent-skills
+ias install vercel-labs/agent-skills
 
 # Install by full URL
-install-anything install https://github.com/affaan-m/ECC
+ias install https://github.com/affaan-m/ECC
 
 # Explicitly target a specific agent harness
-install-anything install https://github.com/user/repo --agent gemini
+ias install https://github.com/user/repo --agent gemini
 
 # Preview installation without making changes (dry-run)
-install-anything install https://github.com/user/repo --dry-run
+ias install https://github.com/user/repo --dry-run
 
 # Output machine-readable JSON for agent consumption
-install-anything install https://github.com/user/repo --json
+ias install https://github.com/user/repo --json
 
 # 3. Diagnose repository before installing
-install-anything diagnose https://github.com/user/repo
+ias diagnose https://github.com/user/repo
 
 # 4. List all managed repositories, binaries, and registered skills
-install-anything list-installed
+ias list-installed
 
 # 5. Safely remove a repository, unregister skills, and unlink binaries
-install-anything uninstall <identifier> --force
+ias uninstall <identifier> --force
 ```
 
 ### Using Inside Agent Conversations
-Any AI agent that has loaded the `install-anything` skill can run:
+Any AI agent that has loaded the `ias` skill can run:
 ```bash
-/install-anything find react
-/install-anything install https://github.com/user/repo
+/ias find react
+/ias install https://github.com/user/repo
 ```
 or execute via the terminal tool:
 ```bash
-install-anything find <query>
-install-anything install <repo-url>
+ias find <query>
+ias install <repo-url>
 ```
 
 ---
@@ -175,13 +175,13 @@ When an agent or developer runs `install-anything install <repo-url>`:
 
 | Command | Description |
 |---------|-------------|
-| `install-anything find <query>` | Discover agent skills, packages, and CLI tool repos (e.g., `install-anything find react`) |
-| `install-anything install <url>` | Clone repo, compile binaries, register skills for active agent & global store |
-| `install-anything install <url> --agent <name>` | Explicitly target an agent harness (e.g. `gemini`, `claude`, `codex`) |
-| `install-anything diagnose <url>` | Analyze repository without installing (README guide, languages, frameworks, skills) |
-| `install-anything list-installed` | Show all managed installations, exposed binaries, and registered skills |
-| `install-anything uninstall <id> --force` | Safe removal of repository, binaries (`~/.local/bin`), and registered skills |
-| `install-anything --help` | Show command line help and options |
+| `ias find <query>` | Discover agent skills, packages, and CLI tool repos (e.g., `ias find react`) |
+| `ias install <url>` | Clone repo, compile binaries, register skills for active agent & global store |
+| `ias install <url> --agent <name>` | Explicitly target an agent harness (e.g. `gemini`, `claude`, `codex`) |
+| `ias diagnose <url>` | Analyze repository without installing (README guide, languages, frameworks, skills) |
+| `ias list-installed` | Show all managed installations, exposed binaries, and registered skills |
+| `ias uninstall <id> --force` | Safe removal of repository, binaries (`~/.local/bin`), and registered skills |
+| `ias --help` | Show command line help and options (alias: `install-anything`) |
 
 ---
 
@@ -189,10 +189,10 @@ When an agent or developer runs `install-anything install <repo-url>`:
 
 | Agent Framework | Skills Directory | Scoping & Integration Behavior |
 |-----------------|------------------|--------------------------------|
-| **Antigravity / Gemini** | `~/.gemini/skills/` | Automatic runtime detection (`ANTIGRAVITY_AGENT`); zero pollution to unused agents |
-| **Open Agents** | `~/.agents/skills/` & `.skill-lock.json` | Canonical global store (`npx skills` compatible) |
-| **Claude Code** | `~/.claude/skills/` | Skills directory & `~/.claude/commands/install-anything.md` (`/install-anything`) |
-| **Hermes** | `~/.hermes/skills/` | Skills directory & `~/.hermes/commands/install-anything.md` (`/install-anything`) |
+| **Antigravity / Gemini** | `~/.gemini/skills/ias` | Automatic runtime detection (`ANTIGRAVITY_AGENT`); zero pollution to unused agents |
+| **Open Agents** | `~/.agents/skills/ias` & `.skill-lock.json` | Canonical global store (`npx skills` compatible) |
+| **Claude Code** | `~/.claude/skills/ias` | Skills directory & `~/.claude/commands/ias.md` (`/ias`) |
+| **Hermes** | `~/.hermes/skills/ias` | Skills directory & `~/.hermes/commands/ias.md` (`/ias`) |
 | **OpenCode** | `~/.config/opencode/skills/` | Config plugin / skill directory |
 | **Codex** | `~/.codex/skills/` | Targeted on demand (`--agent codex`) |
 | **Cursor** | `~/.cursor/skills/` | Targeted on demand (`--agent cursor`) |
@@ -205,11 +205,15 @@ When an agent or developer runs `install-anything install <repo-url>`:
 ```
 install-anything-skill/
 ├── bin/
-│   └── install-anything             # CLI executable (find, install, diagnose, list, uninstall)
+│   ├── ias                          # Short acronym executable
+│   └── install-anything             # Full CLI executable
 ├── skills/
-│   ├── install-anything/            # Primary agent skill definition
+│   ├── ias/                         # Primary acronym agent skill
 │   │   ├── SKILL.md
-│   │   └── scripts/dispatch.js      # Resilient CLI dispatcher
+│   │   └── scripts/dispatch.js
+│   ├── install-anything/            # Full-name agent skill definition
+│   │   ├── SKILL.md
+│   │   └── scripts/dispatch.js
 │   ├── install-anything-installer/  # Scanner, adapter, finder & skill registry engine
 │   │   ├── SKILL.md
 │   │   └── scripts/
@@ -221,7 +225,8 @@ install-anything-skill/
 │   └── install-anything-uninstaller/# Safe removal skill
 │       └── SKILL.md
 ├── commands/
-│   └── install-anything.md          # Agent slash command definition
+│   ├── ias.md                       # /ias slash command
+│   └── install-anything.md          # /install-anything slash command
 ├── scripts/
 │   ├── install.sh                   # Universal 1-command curl installer
 │   ├── install.js                   # Node.js self-registration script

@@ -535,7 +535,7 @@ class SkillFinder {
    */
   formatOutput(results, query = '') {
     if (results.length === 0) {
-      return `\n🔍 No skills or tools found for "${query}".\n   💡 You can still install any GitHub repository with:\n      install-anything install <owner/repo>\n`;
+      return `\n🔍 No skills or tools found for "${query}".\n   💡 You can still install any GitHub repository with:\n      ias install <owner/repo>\n`;
     }
 
     let out = `\n🔍 Discovered Skills & Tools for "${query}":\n`;
@@ -554,12 +554,12 @@ class SkillFinder {
       if (item.isInstalled) {
         out += `   ✨ \x1b[32mInstalled & ready in your active agent harness\x1b[0m\n`;
       } else {
-        out += `   🚀 \x1b[36minstall-anything install ${item.source}\x1b[0m\n`;
+        out += `   🚀 \x1b[36mias install ${item.source}\x1b[0m\n`;
       }
     });
 
     out += '\n' + '─'.repeat(60) + '\n';
-    out += '💡 Run "install-anything install <source>" to install and configure any tool above for your agent.\n';
+    out += '💡 Run "ias install <source>" to install and configure any tool above for your agent.\n';
     return out;
   }
 }

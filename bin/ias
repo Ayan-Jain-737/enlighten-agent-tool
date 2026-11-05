@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+/**
+ * ias - Short alias for install-anything
+ */
+require('./install-anything');

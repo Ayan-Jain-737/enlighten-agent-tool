@@ -19,6 +19,7 @@
   "author": "Ayan-Jain-737",
   "license": "MIT",
   "bin": {
+    "ias": "bin/ias",
     "install-anything": "bin/install-anything",
     "install-anything-skill": "bin/install-anything",
     "enlighten": "bin/install-anything"

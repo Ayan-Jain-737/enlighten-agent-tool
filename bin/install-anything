@@ -648,18 +648,19 @@ if (require.main === module) {
 
   if (filteredArgs.length === 0 || args.includes('--help') || args.includes('-h') || filteredArgs[0] === 'help') {
     console.log(`
-install-anything v${cli.version} - Universal AI Agent Repository & Skill Installer
+ias (Install Anything Skill) v${cli.version} - Universal AI Agent Repository & Skill Installer
 
 USAGE:
-    install-anything find <query> [--json]
-    install-anything install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
-    install-anything diagnose <repo-url> [--json]
-    install-anything list-installed [--json]
-    install-anything uninstall <identifier> [--force] [--dry-run] [--json]
-    install-anything --help
+    ias find <query> [--json]
+    ias install <repo-url> [--agent <name>] [--all-agents] [--dry-run] [--force] [--json]
+    ias diagnose <repo-url> [--json]
+    ias list-installed [--json]
+    ias uninstall <identifier> [--force] [--dry-run] [--json]
+    ias --help
+    (alias: install-anything)
 
 COMMANDS:
-    find <query>        Discover agent skills, packages, and CLI tool repos (e.g. install-anything find react)
+    find <query>        Discover agent skills, packages, and CLI tool repos (e.g. ias find react)
     install <url>       Check README for install guide, execute suggested steps,
                         and register skills for the active agent harness and global store.
     diagnose <url>      Check README & repository without installing.

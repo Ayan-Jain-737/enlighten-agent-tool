@@ -70,6 +70,6 @@ fi
 
 echo ""
 echo "✨ Installation finished successfully!"
-echo "   Test with: install-anything --help"
-echo "   Install any repo: install-anything install <repo-url>"
+echo "   Test with: ias --help (or install-anything --help)"
+echo "   Install any repo: ias install <repo-url>"
 echo ""

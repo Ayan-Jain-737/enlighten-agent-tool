@@ -41,8 +41,8 @@ class SelfInstaller {
     console.log('🎉 install-anything Skills Registration Complete!');
     console.log('========================================================\n');
     console.log('Available Commands & Skills:');
-    console.log('  • CLI: install-anything install <repo-url>');
-    console.log('  • Slash Command: /install-anything install <repo-url>');
+    console.log('  • CLI: ias install <repo-url> (or install-anything)');
+    console.log('  • Slash Command: /ias install <repo-url> (or /install-anything)');
     console.log('  • Registered Skills:');
     this.installedSkills.forEach(s => {
       console.log(`    - ${s.name} (${s.harnesses.length} agent harnesses)`);
@@ -60,6 +60,7 @@ class SelfInstaller {
   linkBinary() {
     const binSrc = path.join(this.projectDir, 'bin', 'install-anything');
     const localBin = path.join(this.homedir, '.local', 'bin');
+    const iasDest = path.join(localBin, 'ias');
     const binDest = path.join(localBin, 'install-anything');
     const aliasDest = path.join(localBin, 'install-anything-skill');
     const legacyDest = path.join(localBin, 'enlighten');
@@ -70,7 +71,7 @@ class SelfInstaller {
       }
       fs.chmodSync(binSrc, 0o755);
 
-      for (const dest of [binDest, aliasDest, legacyDest]) {
+      for (const dest of [iasDest, binDest, aliasDest, legacyDest]) {
         try {
           if (fs.existsSync(dest) || fs.lstatSync(dest, { throwIfNoEntry: false })) {
             fs.rmSync(dest, { force: true });
@@ -80,15 +81,16 @@ class SelfInstaller {
       }
 
       this.binaryLinked = true;
-      console.log(`✅ Linked CLI executable: ~/.local/bin/install-anything -> ${binSrc}`);
+      console.log(`✅ Linked CLI executable: ~/.local/bin/ias -> ${binSrc}`);
+      console.log(`   (also aliased: install-anything, install-anything-skill, enlighten)`);
     } catch (e) {
-      console.log(`⚠️  Could not link ~/.local/bin/install-anything: ${e.message}`);
+      console.log(`⚠️  Could not link ~/.local/bin/ias: ${e.message}`);
     }
   }
 
   registerProjectSkills() {
     const skillsDir = path.join(this.projectDir, 'skills');
-    const skillNames = ['install-anything', 'install-anything-installer', 'install-anything-uninstaller'];
+    const skillNames = ['ias', 'install-anything', 'install-anything-installer', 'install-anything-uninstaller'];
     const isAllHarnesses = process.argv.includes('--all') || process.argv.includes('--all-agents');
 
     for (const name of skillNames) {

@@ -68,5 +68,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Profile mapping system
 - Initial README documentation
 
-[1.0.0]: https://github.com/Ayan-Jain-737/enlighten-agent-tool/compare/v0.1.0...v1.0.0
-[0.1.0]: https://github.com/Ayan-Jain-737/enlighten-agent-tool/tree/v0.1.0
+[1.0.0]: https://github.com/Ayan-Jain-737/install-anything-skill/compare/v0.1.0...v1.0.0
+[0.1.0]: https://github.com/Ayan-Jain-737/install-anything-skill/tree/v0.1.0

@@ -1,5 +1,5 @@
 {
-  "name": "enlighten-agent-tool",
+  "name": "install-anything-skill",
   "version": "1.1.1",
   "description": "Universal GitHub repository and skill installer for AI agent harnesses",
   "main": "index.js",

@@ -271,7 +271,7 @@ class SkillFinder {
       try {
         const req = https.get(url, {
           timeout: this.timeout,
-          headers: { 'User-Agent': 'Enlighten-Agent-Tool/1.0.9' }
+          headers: { 'User-Agent': 'install-anything-skill/1.0.9' }
         }, (res) => {
           if (res.statusCode < 200 || res.statusCode >= 300) {
             finish([]);

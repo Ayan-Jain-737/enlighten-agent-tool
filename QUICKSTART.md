@@ -1,4 +1,4 @@
-# enlighten-agent-tool - Quick Start Guide
+# install-anything-skill - Quick Start Guide
 
 ## 🚀 1-Command Installation
 
@@ -6,17 +6,17 @@ Anyone can install Enlighten in one command:
 
 ```bash
 # 1-command curl installer (installs CLI to ~/.local/bin and registers skills across all harnesses)
-curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/enlighten-agent-tool/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/scripts/install.sh | bash
 ```
 
 Or via `skills` CLI:
 ```bash
-npx skills add Ayan-Jain-737/enlighten-agent-tool -g -y
+npx skills add Ayan-Jain-737/install-anything-skill -g -y
 ```
 
 Or via `npm`:
 ```bash
-npm install -g enlighten-agent-tool
+npm install -g install-anything-skill
 ```
 
 ---

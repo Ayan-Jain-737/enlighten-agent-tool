@@ -1,13 +1,13 @@
-# enlighten-agent-tool
+# install-anything-skill
 
-[![npm](https://img.shields.io/npm/v/enlighten-agent-tool.svg)](https://www.npmjs.com/package/enlighten-agent-tool)
+[![npm](https://img.shields.io/npm/v/install-anything-skill.svg)](https://www.npmjs.com/package/install-anything-skill)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-lightgreen.svg)](https://nodejs.org/)
-[![Keywords](https://img.shields.io/badge/-GitHub-lightgray.svg?logo=github)](https://github.com/Ayan-Jain-737/enlighten-agent-tool)
+[![Keywords](https://img.shields.io/badge/-GitHub-lightgray.svg?logo=github)](https://github.com/Ayan-Jain-737/install-anything-skill)
 
 <div align="center">
 
-![enlighten-agent-tool Preview](https://raw.githubusercontent.com/Ayan-Jain-737/enlighten-agent-tool/main/assets/preview.png)
+![install-anything-skill Preview](https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/assets/preview.png)
 
 </div>
 
@@ -32,7 +32,7 @@
 
 ## 🆚 Head-to-Head: Enlighten vs Traditional `npx skills`
 
-| Capability | Traditional Skills CLI (`npx skills`) | Enlighten (`enlighten-agent-tool`) |
+| Capability | Traditional Skills CLI (`npx skills`) | Enlighten (`install-anything-skill`) |
 | :--- | :--- | :--- |
 | **Any GitHub Repository** | ❌ Fails if not pre-packaged as a skill | ✅ **Works on ANY public or local repo** |
 | **Repos without `SKILL.md`** | ❌ Cannot install | ✅ **Auto-synthesizes skill wrapper** |
@@ -52,23 +52,23 @@ Anyone can install Enlighten in a single command using any of these methods:
 
 ### Method 1: Universal Shell One-Liner (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/enlighten-agent-tool/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/scripts/install.sh | bash
 ```
 
 ### Method 2: Open Agent Skills CLI
 ```bash
-npx skills add Ayan-Jain-737/enlighten-agent-tool -g -y
+npx skills add Ayan-Jain-737/install-anything-skill -g -y
 ```
 
 ### Method 3: NPM Global Install
 ```bash
-npm install -g enlighten-agent-tool
+npm install -g install-anything-skill
 ```
 
 ### Method 4: From Local Clone
 ```bash
-git clone https://github.com/Ayan-Jain-737/enlighten-agent-tool.git
-cd enlighten-agent-tool
+git clone https://github.com/Ayan-Jain-737/install-anything-skill.git
+cd install-anything-skill
 ./scripts/install.sh
 ```
 
@@ -200,7 +200,7 @@ When an agent or developer runs `enlighten install <repo-url>`:
 ## 🏗️ Architecture
 
 ```
-enlighten-agent-tool/
+install-anything-skill/
 ├── bin/
 │   └── enlighten                    # CLI executable (find, install, diagnose, list, uninstall)
 ├── skills/

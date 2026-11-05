@@ -18,8 +18,8 @@ function resolveCliPath() {
   const candidate = path.resolve(__dirname, '..', '..', '..', 'bin', 'enlighten');
   if (fs.existsSync(candidate)) return candidate;
 
-  // 3. Check ~/.enlighten/enlighten-agent-tool/bin/enlighten
-  const defaultClone = path.join(os.homedir(), '.enlighten', 'enlighten-agent-tool', 'bin', 'enlighten');
+  // 3. Check ~/.enlighten/install-anything-skill/bin/enlighten
+  const defaultClone = path.join(os.homedir(), '.enlighten', 'install-anything-skill', 'bin', 'enlighten');
   if (fs.existsSync(defaultClone)) return defaultClone;
 
   return 'enlighten';

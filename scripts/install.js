@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * install.js - Self-Registering Skill Installer for enlighten-agent-tool
+ * install.js - Self-Registering Skill Installer for install-anything-skill
  * Automatically registers Enlighten in all agent harnesses (Antigravity, Open Agents,
  * Claude Code, Hermes, OpenCode, Codex, Cursor, Zed) and links CLI binary.
  */
@@ -98,7 +98,7 @@ class SelfInstaller {
         };
 
         const result = this.registry.registerSkill(skillInfo, {
-          repoUrl: 'https://github.com/Ayan-Jain-737/enlighten-agent-tool.git',
+          repoUrl: 'https://github.com/Ayan-Jain-737/install-anything-skill.git',
           allHarnesses: isAllHarnesses
         });
 
@@ -123,7 +123,7 @@ class SelfInstaller {
 
   updateSkillLock() {
     for (const skill of this.installedSkills) {
-      this.registry.updateSkillLock('https://github.com/Ayan-Jain-737/enlighten-agent-tool.git', {
+      this.registry.updateSkillLock('https://github.com/Ayan-Jain-737/install-anything-skill.git', {
         name: skill.name,
         relativePath: `skills/${skill.name}`
       });

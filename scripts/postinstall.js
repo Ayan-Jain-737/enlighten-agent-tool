@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * enlighten-agent-tool postinstall
+ * install-anything-skill postinstall
  * Automatically called on npm install / global install to register skills
  */
 

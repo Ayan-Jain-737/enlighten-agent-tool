@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# enlighten-agent-tool: Universal 1-Command Installer
+# install-anything-skill: Universal 1-Command Installer
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/enlighten-agent-tool/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Ayan-Jain-737/install-anything-skill/main/scripts/install.sh | bash
 #   or from a local clone: ./scripts/install.sh
 # ==============================================================================
 
 set -e
 
-REPO_URL="https://github.com/Ayan-Jain-737/enlighten-agent-tool.git"
-INSTALL_DIR="${HOME}/.enlighten/enlighten-agent-tool"
+REPO_URL="https://github.com/Ayan-Jain-737/install-anything-skill.git"
+INSTALL_DIR="${HOME}/.enlighten/install-anything-skill"
 
 echo ""
 echo "⚡ ======================================================"
-echo "⚡ Enlighten Agent Tool - Universal Installer"
+echo "⚡ Install Anything Skill - Universal Installer"
 echo "⚡ ======================================================"
 echo ""
 

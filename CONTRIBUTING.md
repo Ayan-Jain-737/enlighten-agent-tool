@@ -1,6 +1,6 @@
-# Contributing to Enlighten Agent Tool
+# Contributing to install-anything-skill
 
-Thank you for your interest in contributing to Enlight Agent Tool! 🎉
+Thank you for your interest in contributing to install-anything-skill! 🎉
 
 ## Table of Contents
 
@@ -26,8 +26,8 @@ Please be respectful and constructive in all interactions.
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/enlighten-agent-tool
-cd enlighten-agent-tool
+git clone https://github.com/YOUR_USERNAME/install-anything-skill
+cd install-anything-skill
 
 # Install dependencies
 npm install
@@ -60,4 +60,4 @@ npm test
 
 ## Questions?
 
-Open an [issue](https://github.com/Ayan-Jain-737/enlighten-agent-tool/issues) with your question.
+Open an [issue](https://github.com/Ayan-Jain-737/install-anything-skill/issues) with your question.

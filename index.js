@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * enlighten-agent-tool
+ * install-anything-skill
  * Universal GitHub Repository & Skill Installer for AI Agent Harnesses
  */
 

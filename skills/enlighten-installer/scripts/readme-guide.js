@@ -20,7 +20,7 @@ class ReadmeGuide {
       if (maxRedirects < 0) return reject(new Error('Too many redirects'));
 
       const client = url.startsWith('https') ? https : http;
-      const req = client.get(url, { headers: { 'User-Agent': 'enlighten-agent-tool' } }, (res) => {
+      const req = client.get(url, { headers: { 'User-Agent': 'install-anything-skill' } }, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
           return resolve(this.fetchUrl(res.headers.location, maxRedirects - 1));
         }
